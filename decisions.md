@@ -29,3 +29,9 @@
 ### Seat locking via database timestamp — no external cache
 **Why**: Keeps infrastructure simple; no Redis or external process required.
 **Decision**: Locking is stored as a `lockedUntil` timestamp on `ShowSeat`. A `@Scheduled` job runs every minute and releases seats whose lock has expired and whose reservation is still `PENDING`.
+
+---
+
+### Seed reference data — defer admin CRUD
+**Why**: The core product value is the reservation flow, not admin data management. Building admin CRUD (US-010, US-011, US-012) before the booking flow delays validation of the most important business logic.
+**Decision**: Movies, halls (with seats), and screenings (with seat entries) are pre-seeded on application startup — just like users. The core booking flow (US-003 → US-004 → US-005 → US-006 → US-007) is implemented first against seeded data. Admin CRUD endpoints are deferred until after the core flow is complete.
