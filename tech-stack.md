@@ -11,7 +11,7 @@
 
 ## Data Layer
 
-- **H2** — file-based relational database (`jdbc:h2:file:./data/<appname>`); no external process or Docker needed; data persists between restarts
+- **H2** — in-memory relational database; no external process or Docker needed
 - **Spring Data JPA / Hibernate** — ORM for all persistence; use JPA annotations on all entities
 - **Spring Data repositories** — `JpaRepository` as the base for all repositories
 
