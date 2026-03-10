@@ -56,7 +56,7 @@ A cinema operations manager responsible for maintaining the repertoire, configur
 ## 5. Product borders
 
 - **In scope**: movie/screening/hall CRUD, real-time seat map with seat types, 15-minute seat locking with automatic expiry, reservation lifecycle (PENDING → CONFIRMED → CANCELLED / EXPIRED), payment status model (PENDING → PAID → REFUNDED), reservation cancellation by customer and admin, user identification with pre-seeded accounts, admin role enforcement, hall scheduling conflict detection, occupancy and revenue reports, unit and integration test coverage for the core booking flow
-- **Out of scope**: payment gateway or third-party payment integration, frontend or UI of any kind, email or SMS notifications, multi-venue or multi-city support, concessions or food ordering, loyalty programs, mobile application, ticket printing or QR code generation
+- **Out of scope**: payment gateway or third-party payment integration, email or SMS notifications, multi-venue or multi-city support, concessions or food ordering, loyalty programs, mobile application, ticket printing or QR code generation
 
 ---
 
@@ -182,47 +182,6 @@ A cinema operations manager responsible for maintaining the repertoire, configur
   - Given a customer, when an admin-only action is attempted, then the request is rejected.
   - Given an admin, when an admin action is performed, then the request proceeds.
 
-- **US-010: Admin manages movies** [TODO]
-
-  As a Cinema Admin,
-  I want to create, update, and deactivate movies,
-  So that the public catalogue reflects the current repertoire.
-
-  **Acceptance Criteria:**
-
-  - Given an admin, when a movie is created with title, description, duration, genre, and age rating, then the movie is saved and available for scheduling.
-  - Given an admin, when a movie's details are updated, then the changes are saved.
-  - Given an admin and the movie has no future screenings, when the movie is deactivated, then it no longer appears in the customer-facing catalogue.
-  - Given the movie has future screenings, when an admin tries to deactivate it, then the request is rejected.
-  - Given a non-admin user, when any admin action is attempted, then the request is rejected.
-
-- **US-011: Admin manages cinema halls** [TODO]
-
-  As a Cinema Admin,
-  I want to define cinema halls with their seat layouts,
-  So that screenings can be scheduled in correctly configured rooms.
-
-  **Acceptance Criteria:**
-
-  - Given an admin, when a hall is created with a name, number of rows, and seats per row, then the hall is saved and all seats are auto-generated as a rectangular grid; seat types are assigned by row: row 1 is ACCESSIBLE, the last 2 rows are PREMIUM, all other rows are STANDARD.
-  - Given an admin, when a hall's details are viewed, then the hall name, dimensions, total seat count, and full seat list are shown.
-  - Given an admin, when a hall's name is updated, then the change is saved.
-  - Given the hall has future screenings scheduled, when an admin tries to change its dimensions, then the request is rejected.
-  - Given invalid dimensions (rows or seats per row less than 1), when an admin tries to create a hall, then the request is rejected.
-
-- **US-012: Admin schedules screenings** [TODO]
-
-  As a Cinema Admin,
-  I want to schedule a screening by assigning a movie, a hall, a start time, and pricing,
-  So that customers can browse and book tickets for it.
-
-  **Acceptance Criteria:**
-
-  - Given a movie and a hall exist, when an admin schedules a screening with a start time, standard price, and premium price, then the screening is created and a seat entry is generated for every seat in the hall.
-  - Given the hall is already occupied for an overlapping time slot (including a 30-minute buffer after the movie ends), when an admin tries to schedule a screening, then the request is rejected with message "Hall not available for the requested time slot".
-  - Given no reservations exist for the screening, when an admin deletes it, then the screening and all its seat entries are removed.
-  - Given at least one reservation exists for the screening, when an admin tries to delete it, then the request is rejected.
-
 - **US-013: Concurrent booking protection** [TODO]
 
   As a Customer,
@@ -235,42 +194,59 @@ A cinema operations manager responsible for maintaining the repertoire, configur
   - Given a seat is LOCKED by one customer, when a second customer tries to include it in their reservation, then the request is immediately rejected and no reservation is created.
   - Given a seat is RESERVED, when any customer tries to include it in a new reservation, then the request is rejected.
 
-- **US-014: Admin views screening occupancy** [TODO]
+- **US-017: Booking cutoff time** [TODO]
 
-  As a Cinema Admin,
-  I want to see the occupancy breakdown for a screening,
-  So that I can monitor how well individual screenings are performing.
-
-  **Acceptance Criteria:**
-
-  - Given a screening exists, when an admin views its occupancy report, then the total, reserved, locked, and available seat counts and total revenue from confirmed reservations are shown.
-  - Given a screening with no reservations, when the occupancy report is viewed, then all seats show as available and revenue is 0.
-  - Given a date range filter, when an admin views an aggregated screening report, then only screenings within that date range are included.
-
-- **US-015: Admin views revenue per movie** [TODO]
-
-  As a Cinema Admin,
-  I want to see total revenue aggregated per movie,
-  So that I can evaluate the commercial performance of the repertoire.
+  As a Customer,
+  I want to be prevented from booking seats for a screening that is about to start,
+  So that I don't end up with a reservation I can't use.
 
   **Acceptance Criteria:**
 
-  - Given confirmed reservations exist for a movie, when an admin views the movie's revenue, then the total revenue from paid reservations is shown, broken down by screening.
-  - Given no confirmed reservations exist for a movie, when the revenue report is viewed, then total revenue is 0.
-  - Given a date range filter, when revenue is viewed, then only reservations confirmed within that date range are included.
+  - Given a screening starts in more than 30 minutes, when a customer initiates a reservation, then the request proceeds normally.
+  - Given a screening starts in 30 minutes or less, when a customer tries to initiate a reservation, then the request is rejected with message "Booking is closed for screenings starting within 30 minutes".
+  - Given a screening has already started, when a customer tries to initiate a reservation, then the request is rejected.
+  - Given a screening starts in 30 minutes or less, when a customer views the seat map, then the seats are still visible but a flag indicates that booking is closed.
 
-- **US-016: Admin cancels a reservation** [TODO]
+- **US-018: Adjacent seat enforcement** [TODO]
 
-  As a Cinema Admin,
-  I want to cancel any customer's confirmed reservation,
-  So that I can handle exceptional situations such as in-person customer requests or operational issues.
+  As a Customer,
+  I want the system to require that my selected seats are next to each other in the same row,
+  So that my group can sit together.
 
   **Acceptance Criteria:**
 
-  - Given an admin and a CONFIRMED reservation, when the admin cancels it, then the reservation becomes CANCELLED, payment becomes REFUNDED, and all associated seats return to AVAILABLE.
-  - Given the reservation is already CANCELLED or EXPIRED, when an admin tries to cancel it, then the request is rejected.
-  - Given the reservation does not exist, when an admin tries to cancel it, then an appropriate error is shown.
-  - Given a non-admin user, when the admin cancellation action is attempted, then the request is rejected.
+  - Given a customer selects multiple seats that are all in the same row and form a contiguous block (no gaps in seat numbers), when the reservation is submitted, then the request proceeds normally.
+  - Given a customer selects seats in different rows, when the reservation is submitted, then the request is rejected with message "All selected seats must be in the same row".
+  - Given a customer selects seats in the same row but with gaps (e.g. seats 3, 5, 6), when the reservation is submitted, then the request is rejected with message "Selected seats must be adjacent".
+  - Given a customer selects a single seat, when the reservation is submitted, then the adjacency rule does not apply and the request proceeds normally.
+  - Given a contiguous block includes a LOCKED or RESERVED seat in between, when the customer selects seats around the gap, then the request is rejected because the seats are not adjacent.
+
+- **US-019: Dynamic pricing based on occupancy** [TODO]
+
+  As a Cinema Operator,
+  I want ticket prices to increase automatically as a screening fills up,
+  So that high-demand screenings generate more revenue.
+
+  **Acceptance Criteria:**
+
+  - Given a screening with less than 50% of seats reserved or locked, when a customer initiates a reservation, then the base price per seat type applies.
+  - Given a screening with 50% or more but less than 80% of seats reserved or locked, when a customer initiates a reservation, then the price per seat is the base price multiplied by 1.25 (25% surcharge).
+  - Given a screening with 80% or more of seats reserved or locked, when a customer initiates a reservation, then the price per seat is the base price multiplied by 1.50 (50% surcharge).
+  - Given the price is calculated at reservation initiation, when the reservation is confirmed, then the total price remains as calculated at initiation time (the price is locked in with the reservation, not recalculated).
+  - Given the seat map is viewed, when occupancy-based pricing is active, then the current price tier and per-seat prices are shown.
+
+- **US-020: Active reservation limit per customer** [TODO]
+
+  As a Cinema Operator,
+  I want to limit each customer to a maximum of 3 active reservations,
+  So that seats are not hoarded by a single person.
+
+  **Acceptance Criteria:**
+
+  - Given a customer has fewer than 3 active (PENDING or CONFIRMED) reservations, when the customer initiates a new reservation, then the request proceeds normally.
+  - Given a customer already has 3 active (PENDING or CONFIRMED) reservations, when the customer tries to initiate another, then the request is rejected with message "Maximum of 3 active reservations reached".
+  - Given a customer has 3 active reservations and one is cancelled or expires, when the customer initiates a new reservation, then the request proceeds normally.
+  - Given the limit is checked, when counting active reservations, then only PENDING and CONFIRMED reservations are counted; CANCELLED and EXPIRED are excluded.
 
 ---
 
@@ -279,7 +255,5 @@ A cinema operations manager responsible for maintaining the repertoire, configur
 - **No double-booking**: No two CONFIRMED reservations share the same seat for the same screening under any conditions, including concurrent requests.
 - **Seat lock lifecycle**: Locked seats automatically return to AVAILABLE after exactly 15 minutes if not confirmed; CONFIRMED seats permanently hold RESERVED status.
 - **Reservation code uniqueness**: Every reservation carries a globally unique alphanumeric code; no two reservations in the system share the same code.
-- **Role enforcement**: Admin-only operations are rejected for non-admin users; user-scoped operations are rejected when no user is identified.
-- **Hall scheduling conflict detection**: Attempting to schedule two screenings in the same hall with overlapping time windows (including the 30-minute buffer) always returns HTTP 409.
-- **Revenue accuracy**: The total revenue returned for a movie equals the sum of total prices of all CONFIRMED reservations across all screenings of that movie.
+- **Role enforcement**: User-scoped operations are rejected when no user is identified.
 - **Core booking flow test coverage**: The full sequence — browse screenings → view seat map → lock seats → confirm reservation → cancel reservation — is covered by at least one integration test for the happy path and one for each critical error case (expired lock, conflict, unauthorized access).
