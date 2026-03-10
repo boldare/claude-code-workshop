@@ -15,8 +15,8 @@ Zgodnie ze specyfikacją z @tech-stack.md oraz @prd.md stwórz projekt Spring Bo
 ## Kontrakt API
 
 #3 - Zdefiniuj OpenAPI spec dla UC-1 - [PLAN MODE, Opus]
-Na podstawie US-003 z @prd.md zdefiniuj kontrakt API w pliku `openapi.yaml` dla endpointu `GET /screenings/{screeningId}/seats`.
-Zdefiniuj schemat odpowiedzi (`SeatResponse`, `SeatStatus` enum, itp.), kody HTTP (200, 404) i przykładowe odpowiedzi. Zastosuj konwencje z CLAUDE.md.
+Na podstawie US-003 z @prd.md zdefiniuj kontrakt API w pliku `openapi.yaml`.
+Zdefiniuj schemat odpowiedzi, kody HTTP i przykładowe odpowiedzi.
 Nie implementuj jeszcze niczego — to jest kontrakt, nie implementacja. Zaczynamy od tego, co system mówi światu.
 
 --- CHECKPOINT
@@ -27,7 +27,7 @@ Nie implementuj jeszcze niczego — to jest kontrakt, nie implementacja. Zaczyna
 Na podstawie pliku `testing-rules.md` zdefiniuj projektowy skill Claude Code, który jest automatycznie stosowany podczas pisania testów. Skill powinien wymuszać zasady zdefiniowane we wspomnianym pliku.
 
 #5 - Implementacja endpointu mapy sali (BE) - [PLAN MODE, Opus]
-Przejdź do plan mode. Zaimplementuj endpoint `GET /screenings/{screeningId}/seats` zgodnie z kontraktem z `openapi.yaml` i US-003 z @prd.md.
+Przejdź do plan mode. Zaimplementuj zdefiniowany uprzednio endpoint zgodnie z kontraktem z `openapi.yaml` i US-003 z @prd.md.
 
 Wymagania endpointu:
 - Zwraca listę wszystkich miejsc seansu z polami: `seatId`, `row`, `seatNumber`, `type`, `status`.
@@ -44,9 +44,7 @@ Warunek akceptacji: mvn clean install przechodzi bez błędów.
 ## Dane wsadowe
 
 [META-PROMPTING]
-#6 - Musimy teraz znaleźć jakiś sposób na przygotowanie danych testowych, które będą przygotowane tylko raz - podczas pierwszego uruchomienia aplikacji. Później dane powinny pozostać spersystowane w bazie danych. Przygotuj proszę prompta, którego możemy wykorzystać do tego celu - bądź zwięzły, oraz konkretny. Zróbmy szybki brainstorming jak to zrobić w najlepszy sposób.
-
-#7 - Zaimplementuj seed data uruchamiany przy starcie aplikacji. Utwórz klasy `UserSeeder`, `MovieSeeder` i `HallSeeder` implementujące `CommandLineRunner`. `UserSeeder` powinien tworzyć 1 admina i 3 klientów ze stałymi ID i rolami. `MovieSeeder` powinien tworzyć 3 filmy: Inception, The Dark Knight, Interstellar. `HallSeeder` powinien tworzyć przykładową salę kinową z 10 rzędami i 15 miejscami w rzędzie. Dane powinny być idempotentne — sprawdzaj przed zapisem czy już istnieją. Baza H2 jest file-based, więc dane powinny przetrwać restart aplikacji.
+#6 - Musimy teraz znaleźć jakiś sposób na przygotowanie danych testowych, które będą przygotowane tylko raz - podczas pierwszego uruchomienia aplikacji. Później dane powinny pozostać spersystowane w bazie danych. Przygotuj proszę prompta, którego możemy wykorzystać do tego celu - bądź zwięzły, oraz konkretny. Zróbmy szybki brainstorming jak to zrobić w najlepszy sposób. Odwołaj się do @tech-stack.md gdzie zdefiniowane są wstępne wymagania. Dane powinny być idempotentne — sprawdzaj przed zapisem czy już istnieją. Baza H2 jest file-based, więc dane powinny przetrwać restart aplikacji.
 
 #8 - Aktualizacja CLAUDE.md o dane wsadowe
 Zaktualizuj plik CLAUDE.md, dodając sekcję opisującą predefiniowane dane testowe: znane ID i role użytkowników, tytuły preseeded filmów, konfigurację przykładowej sali. Te dane są używane w testach i przy ręcznym testowaniu przez Swagger UI.
