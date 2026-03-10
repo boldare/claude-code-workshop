@@ -70,6 +70,10 @@ H2 console is enabled for local inspection at `/h2-console`.
   └── shared
   ```
 
+## Project Setup
+
+- `.gitignore` — include rules for Java, IntelliJ IDEA, and VS Code
+
 ## Out of Scope (do not add)
 
 - Spring Security or any authentication/authorization framework
