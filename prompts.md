@@ -37,6 +37,7 @@ Wymagania endpointu:
 - Encje JPA i repozytoria pojawiają się jako detal implementacyjny — nie projektuj ich z góry, niech wynikną z potrzeb logiki biznesowej.
 
 Zacznij od testu integracyjnego, który weryfikuje kontrakt z openapi.yaml: HTTP 200 z poprawną strukturą odpowiedzi oraz HTTP 404 dla nieistniejącego seansu. Test powinien być czerwony, dopóki endpoint nie zostanie zaimplementowany — a potem zielony po implementacji.
+Warunek akceptacji: mvn clean install przechodzi bez błędów.
 
 --- CHECKPOINT
 
