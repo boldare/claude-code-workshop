@@ -1,0 +1,2621 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warsztaty Claude Code</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --yellow: #F5C700;
+      --yellow-dark: #D4AA00;
+      --yellow-light: #FFF4CC;
+      --black: #111111;
+      --white: #FFFFFF;
+      --gray-light: #F7F7F7;
+      --gray-mid: #DEDEDE;
+      --gray-text: #555555;
+      --green: #4CAF50;
+      --green-light: #E8F5E9;
+      --red: #E53935;
+      --red-light: #FFEBEE;
+
+      --title-size: clamp(1.9rem, 4.5vw, 3.8rem);
+      --h2-size: clamp(1.4rem, 3vw, 2.4rem);
+      --h3-size: clamp(1rem, 2vw, 1.55rem);
+      --body-size: clamp(0.88rem, 1.6vw, 1.25rem);
+      --small-size: clamp(0.78rem, 1.3vw, 1.05rem);
+      --label-size: clamp(0.68rem, 1.1vw, 0.88rem);
+
+      --slide-padding: clamp(1.4rem, 3.5vh, 3rem) clamp(1.8rem, 4.5vw, 4.5rem);
+      --content-gap: clamp(0.6rem, 1.4vw, 1.4rem);
+      --element-gap: clamp(0.3rem, 0.8vw, 0.7rem);
+      --sidebar-w: clamp(48px, 5vw, 68px);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--black);
+    }
+
+    .presentation {
+      width: 100vw;
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+      background: var(--white);
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--yellow);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: calc(clamp(1rem, 2.5vh, 2rem) + 3rem);
+      flex-shrink: 0;
+    }
+    .sidebar-label {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 900;
+      font-size: clamp(0.72rem, 1.1vw, 0.95rem);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--black);
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: var(--slide-padding);
+      gap: var(--content-gap);
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* SLIDE HEADER */
+    .slide-header {
+      flex-shrink: 0;
+    }
+    .slide-title {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 800;
+      font-size: var(--h2-size);
+      color: var(--black);
+      line-height: 1.15;
+    }
+    .accent-bar {
+      height: 4px;
+      background: var(--yellow);
+      width: 0;
+      margin-bottom: 0.4em;
+    }
+
+    /* SLIDE BODY */
+    .slide-body {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: var(--content-gap);
+      min-height: 0;
+    }
+
+    /* TYPOGRAPHY */
+    h3 {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      font-size: var(--h3-size);
+      color: var(--black);
+      margin-bottom: 0.25em;
+    }
+    p {
+      font-size: var(--body-size);
+      color: var(--gray-text);
+      line-height: 1.5;
+    }
+    ul, ol {
+      padding-left: 1.4em;
+      display: flex;
+      flex-direction: column;
+      gap: var(--element-gap);
+    }
+    li {
+      font-size: var(--body-size);
+      color: var(--gray-text);
+      line-height: 1.4;
+    }
+    strong { color: var(--black); font-weight: 700; }
+
+    /* CARDS */
+    .cards { display: grid; gap: clamp(0.4rem, 0.9vw, 0.85rem); }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .card {
+      background: var(--gray-light);
+      border-top: 4px solid var(--yellow);
+      border-radius: 0 0 6px 6px;
+      padding: clamp(0.55rem, 1.1vw, 1rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25em;
+    }
+    .card.featured { border-top-color: var(--black); }
+    .card.danger { border-top-color: var(--red); }
+    .card.success { border-top-color: var(--green); }
+    .card-title {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      font-size: var(--small-size);
+      color: var(--black);
+    }
+    .card p {
+      font-size: var(--small-size);
+    }
+
+    /* TABLE */
+    .tbl { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+    .tbl th {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      padding: 0.38em 0.7em;
+      font-size: var(--label-size);
+      text-align: left;
+    }
+    .tbl td {
+      padding: 0.3em 0.7em;
+      border-bottom: 1px solid var(--gray-mid);
+      color: var(--gray-text);
+    }
+    .tbl tr:nth-child(even) td { background: var(--gray-light); }
+
+    /* BLOCKQUOTE */
+    blockquote {
+      border-left: 4px solid var(--yellow);
+      padding: 0.5em 0.9em;
+      background: var(--yellow-light);
+      border-radius: 0 4px 4px 0;
+      font-style: italic;
+      color: var(--gray-text);
+      font-size: var(--small-size);
+    }
+
+    /* FLOW CHAIN */
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3em; }
+    .flow-box {
+      background: var(--gray-light);
+      border: 2px solid var(--gray-mid);
+      border-radius: 6px;
+      padding: 0.4em 0.7em;
+      font-size: var(--label-size);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .flow-box.hi { background: var(--yellow-light); border-color: var(--yellow-dark); font-weight: 600; }
+    .flow-box.dark { background: var(--black); color: var(--white); }
+    .flow-arrow { font-size: var(--h3-size); color: var(--yellow-dark); font-weight: 900; padding: 0 0.3em; }
+
+    /* CODE */
+    pre {
+      background: var(--black);
+      color: #e8e8e8;
+      border-radius: 6px;
+      padding: clamp(0.55rem, 1.1vw, 1rem);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: var(--small-size);
+      overflow: auto;
+      line-height: 1.5;
+      flex-shrink: 0;
+    }
+    code {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.92em;
+    }
+
+    /* HANDS-ON */
+    .hands-on {
+      background: #FFF8E0;
+      border: 1px solid var(--yellow);
+      border-left: 4px solid var(--yellow-dark);
+      border-radius: 0 6px 6px 0;
+      padding: 0.55em 0.95em;
+      flex-shrink: 0;
+    }
+    .ho-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 800;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--yellow-dark);
+      margin-bottom: 0.2em;
+    }
+    .hands-on p {
+      font-size: var(--small-size);
+      color: var(--black);
+    }
+
+    /* TITLE SLIDE */
+    .title-slide .main {
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .title-deco {
+      position: absolute;
+      right: -5%;
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(200px, 35vw, 450px);
+      height: clamp(200px, 35vw, 450px);
+      border-radius: 50%;
+      background: var(--yellow);
+      opacity: 0.07;
+      pointer-events: none;
+    }
+    .title-main {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 900;
+      font-size: clamp(2.4rem, 6.5vw, 5.5rem);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--black);
+      margin: 0;
+    }
+    .title-sub {
+      font-family: 'DM Sans', sans-serif;
+      font-size: var(--h3-size);
+      color: var(--gray-text);
+      margin: 0.5em 0 0;
+    }
+    .title-pres {
+      margin-top: 1.5em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3em;
+    }
+    .pres-lbl {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--gray-text);
+    }
+    .pres-names {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 600;
+      font-size: var(--small-size);
+      color: var(--black);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeSlideLeft {
+      from { opacity: 0; transform: translateX(-32px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes accentBarGrow {
+      from { width: 0; }
+      to { width: clamp(50px, 7vw, 100px); }
+    }
+
+    .reveal { opacity: 0; }
+    .reveal-left { opacity: 0; }
+
+    .visible .reveal { animation: fadeSlideUp 0.55s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .visible .reveal-left { animation: fadeSlideLeft 0.55s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .visible .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+    .visible .stagger > *:nth-child(2) { animation-delay: 0.10s; }
+    .visible .stagger > *:nth-child(3) { animation-delay: 0.15s; }
+    .visible .stagger > *:nth-child(4) { animation-delay: 0.20s; }
+    .visible .stagger > *:nth-child(5) { animation-delay: 0.25s; }
+    .visible .stagger > *:nth-child(6) { animation-delay: 0.30s; }
+    .visible .stagger > *:nth-child(7) { animation-delay: 0.35s; }
+    .visible .stagger > *:nth-child(8) { animation-delay: 0.40s; }
+    .visible .accent-bar { animation: accentBarGrow 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s forwards; }
+
+    /* NAVIGATION */
+    #nav-ui {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      pointer-events: none;
+    }
+    #progress-bar {
+      width: 100%;
+      height: 3px;
+      background: rgba(0,0,0,0.12);
+    }
+    #progress {
+      height: 100%;
+      background: var(--yellow);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    #nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4em 1.2em 0.6em;
+      background: rgba(17,17,17,0.82);
+      backdrop-filter: blur(8px);
+      pointer-events: all;
+    }
+    #counter {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.08em;
+    }
+    #nav-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      cursor: pointer;
+      transition: background 0.25s, transform 0.25s;
+    }
+    .dot.active {
+      background: var(--yellow);
+      transform: scale(1.35);
+    }
+
+    /* UTIL */
+    .tag {
+      display: inline-block;
+      background: var(--yellow-light);
+      border: 1px solid var(--yellow-dark);
+      border-radius: 4px;
+      padding: 0.15em 0.5em;
+      font-size: var(--label-size);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 700;
+      color: var(--black);
+      letter-spacing: 0.05em;
+    }
+    .section-label {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 800;
+      font-size: var(--label-size);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--yellow-dark);
+      margin-bottom: 0.3em;
+    }
+    .numbered-list {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--element-gap);
+    }
+    .numbered-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7em;
+    }
+    .num-badge {
+      flex-shrink: 0;
+      width: 1.6em;
+      height: 1.6em;
+      background: var(--yellow);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow', sans-serif;
+      font-weight: 900;
+      font-size: var(--label-size);
+      color: var(--black);
+    }
+    .num-text {
+      font-size: var(--body-size);
+      color: var(--gray-text);
+      line-height: 1.4;
+    }
+    .highlight-box {
+      background: var(--yellow-light);
+      border-left: 4px solid var(--yellow-dark);
+      border-radius: 0 6px 6px 0;
+      padding: 0.6em 1em;
+      font-size: var(--body-size);
+      color: var(--black);
+    }
+
+    /* ADDITIONAL COMPONENTS FOR SLIDES 12-44 */
+    
+    /* Context bar */
+    .ctx-bar { display: flex; height: clamp(2.2rem, 4.5vh, 3.2rem); border-radius: 6px; overflow: hidden; border: 2px solid var(--gray-mid); }
+    .ctx-seg { display: flex; align-items: center; justify-content: center; font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--label-size); padding: 0 0.8em; }
+    
+    /* Permission rows */
+    .perm-row { display: flex; border: 1px solid var(--gray-mid); border-radius: 6px; overflow: hidden; margin-bottom: 0.32em; align-items: stretch; }
+    .perm-badge { font-family: 'Barlow', sans-serif; font-weight: 900; min-width: 5.5em; padding: 0.45em 0.9em; display: flex; align-items: center; justify-content: center; font-size: var(--label-size); }
+    .perm-badge.allow { background: #1a5c2a; color: var(--white); }
+    .perm-badge.ask { background: var(--yellow-dark); color: var(--black); }
+    .perm-badge.deny { background: var(--red); color: var(--white); }
+    .perm-text { padding: 0.45em 0.9em; font-size: var(--label-size); color: var(--gray-text); display: flex; align-items: center; }
+    
+    /* Mode cards */
+    .mode-card { background: var(--gray-light); border-left: 4px solid var(--yellow); border-radius: 0 6px 6px 0; padding: 0.45em 0.9em; display: flex; gap: 0.8em; margin-bottom: 0.32em; align-items: flex-start; }
+    .mode-card.special { border-left-color: var(--red); }
+    .mode-name { font-family: 'Courier New', monospace; font-weight: 700; min-width: 8.5em; font-size: var(--label-size); color: var(--black); flex-shrink: 0; }
+    .mode-desc { font-size: var(--label-size); color: var(--gray-text); }
+    
+    /* Priority layers */
+    .prio-layer { display: flex; align-items: center; border-radius: 6px; padding: 0.4em 0.9em; gap: 0.8em; margin-bottom: 0.28em; }
+    .prio-num { font-family: 'Barlow', sans-serif; font-weight: 900; width: 1.6em; height: 1.6em; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); flex-shrink: 0; font-size: var(--label-size); }
+    .prio-text { font-size: var(--small-size); }
+    .prio-text strong { color: inherit; }
+    .prio-sub { font-size: var(--label-size); opacity: 0.8; display: block; font-family: 'Courier New', monospace; margin-top: 0.1em; }
+    
+    /* Bad/Good */
+    .bad-good { display: flex; flex-direction: column; gap: 0.32em; }
+    .bg-row { display: flex; gap: 0.5em; align-items: stretch; }
+    .bg-badge { font-family: 'Barlow', sans-serif; font-weight: 900; font-size: var(--label-size); min-width: 3.5em; padding: 0.4em 0.5em; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+    .bg-badge.zle { background: var(--red-light); color: var(--red); }
+    .bg-badge.dobrze { background: var(--green-light); color: #2e7d32; }
+    .bg-text { font-family: 'Courier New', monospace; font-size: var(--label-size); background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 4px; padding: 0.4em 0.7em; flex: 1; color: var(--black); display: flex; align-items: center; }
+    
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 0.32em; }
+    .step { display: flex; gap: 0.7em; align-items: flex-start; }
+    .step-n { background: var(--black); color: var(--yellow); font-family: 'Barlow', sans-serif; font-weight: 900; width: 1.5em; height: 1.5em; min-width: 1.5em; display: flex; align-items: center; justify-content: center; border-radius: 3px; flex-shrink: 0; font-size: var(--label-size); }
+    .step-t { font-size: var(--small-size); color: var(--gray-text); line-height: 1.4; }
+    
+    /* Compare grid */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.4rem, 0.9vw, 0.85rem); }
+    .col-box { background: var(--gray-light); border-top: 4px solid var(--gray-mid); border-radius: 0 0 6px 6px; padding: 0.7em 0.9em; }
+    .col-box.hi { border-top-color: var(--yellow); }
+    .col-box.green { border-top-color: var(--green); }
+    .col-box.red { border-top-color: var(--red); }
+    .col-box h4 { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--small-size); margin-bottom: 0.3em; }
+    .col-box p { font-size: var(--label-size); }
+    .col-box ul { font-size: var(--label-size); }
+    .col-box li { font-size: var(--label-size); }
+    
+    /* End slide */
+    .end-slide .main { justify-content: center; position: relative; overflow: hidden; }
+    .end-deco { position: absolute; right: 5%; top: 50%; transform: translateY(-50%); font-family: 'Barlow', sans-serif; font-weight: 900; font-size: clamp(8rem, 20vw, 18rem); color: var(--yellow); opacity: 0.2; line-height: 1; pointer-events: none; user-select: none; }
+    .contact-names { font-family: 'Barlow', sans-serif; font-weight: 600; font-size: var(--h3-size); color: var(--black); margin-bottom: 0.5em; }
+    
+    /* Sec label */
+    .sec-label { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.12em; color: var(--gray-text); border-bottom: 2px solid var(--yellow); padding-bottom: 0.2em; margin-bottom: 0.4em; display: inline-block; }
+    
+    /* Responsive */
+    @media (max-height: 700px) {
+      :root {
+        --title-size: clamp(1.5rem, 3.5vw, 2.8rem);
+        --body-size: clamp(0.75rem, 1.3vw, 1rem);
+        --h3-size: clamp(0.85rem, 1.6vw, 1.25rem);
+      }
+    }
+    @media (max-width: 600px) {
+      .cols-3, .cols-2, .compare { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="presentation">
+
+  <!-- SLAJD 1 — Strona tytułowa -->
+  <section class="slide title-slide" id="s1">
+    <div class="sidebar"><span class="sidebar-label">Strona tytułowa</span></div>
+    <div class="main">
+      <div class="title-deco"></div>
+      <div class="accent-bar"></div>
+      <h1 class="title-main reveal-left">Warsztaty<br>Claude Code</h1>
+      <div class="title-pres reveal">
+        <div class="pres-lbl">Prowadzący</div>
+        <div class="pres-names">Jakub Walczak · Karol Kasprzak · Przemysław Świda · Sylwia Rapacz</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 2 — O warsztacie w wielkim skrócie -->
+  <section class="slide" id="s2">
+    <div class="sidebar"><span class="sidebar-label">O warsztacie w wielkim skrócie</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">O warsztacie w wielkim skrócie</h2>
+      </div>
+      <div class="slide-body stagger">
+        <h3 class="reveal">Cele wysokopoziomowe</h3>
+        <div class="cards cols-2 reveal">
+          <div class="card">
+            <div class="card-title">Możliwości i ograniczenia</div>
+            <p>Zrozumieć możliwości i ograniczenia Claude Code w codziennej pracy</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Skuteczne prompty</div>
+            <p>Nauczyć się pisać prompty, które dają przewidywalny wynik</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Zarządzanie kontekstem</div>
+            <p>Efektywnie zarządzać kontekstem i sesjami</p>
+          </div>
+          <div class="card featured">
+            <div class="card-title">Samodzielna implementacja</div>
+            <p>Samodzielnie przeprowadzić implementację z pomocą AI</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 3 — Projekt szkoleniowy -->
+  <section class="slide" id="s3">
+    <div class="sidebar"><span class="sidebar-label">Projekt szkoleniowy</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Projekt szkoleniowy: Kino</h2>
+      </div>
+      <div class="slide-body stagger">
+        <p class="reveal">Aplikacja do rezerwacji biletów — klient przegląda repertuar, wybiera miejsca na seans, system blokuje je w czasie rzeczywistym. Admin zarządza filmami, salami i seansami.</p>
+        <div class="cards cols-2 reveal">
+          <div class="card">
+            <div class="card-title">Backend</div>
+            <p>API, logika rezerwacji, blokowanie miejsc w czasie rzeczywistym, zarządzanie seansami</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Frontend</div>
+            <p>Przeglądanie repertuaru, interaktywny wybór miejsc, panel admina</p>
+          </div>
+        </div>
+        <div class="cards cols-3 reveal">
+          <div class="card">
+            <div class="card-title">Filmy</div>
+            <p>Zarządzanie tytułami, opis, czas trwania</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Sale i seanse</div>
+            <p>Konfiguracja sal, planowanie seansów, dostępność</p>
+          </div>
+          <div class="card featured">
+            <div class="card-title">Use casy</div>
+            <p>Opisane — część robimy razem, potem samodzielnie</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 4 — Agenda — Dzień I -->
+  <section class="slide" id="s4">
+    <div class="sidebar"><span class="sidebar-label">Agenda — Dzień I</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Agenda — Dzień I</h2>
+      </div>
+      <div class="slide-body stagger">
+        <table class="tbl reveal">
+          <thead>
+            <tr>
+              <th>Godzina</th>
+              <th>Aktywność</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>9:00–9:45</td><td>Wstęp</td></tr>
+            <tr><td>9:45–10:00</td><td>Przerwa</td></tr>
+            <tr><td>10:00–11:00</td><td>Teoria cz. 1 + dyskusja</td></tr>
+            <tr><td>11:00–11:15</td><td>Przerwa</td></tr>
+            <tr><td>11:15–12:30</td><td>Teoria cz. 2 + dyskusja</td></tr>
+            <tr><td>12:30–13:30</td><td>Obiad</td></tr>
+            <tr><td>13:30–15:30</td><td>Implementacja: Feature 1</td></tr>
+            <tr><td>15:30–15:45</td><td>Przerwa</td></tr>
+            <tr><td>15:45–16:45</td><td>Testy BDD (Gherkin)</td></tr>
+            <tr><td>16:45–17:00</td><td>Podsumowanie</td></tr>
+          </tbody>
+        </table>
+        <blockquote class="reveal">Cheatsheet z komendami i skrótami rozdamy podczas wprowadzenia.</blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 5 — Cele i plan szkolenia -->
+  <section class="slide" id="s5">
+    <div class="sidebar"><span class="sidebar-label">Cele i plan szkolenia</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Cele i plan szkolenia</h2>
+      </div>
+      <div class="slide-body stagger">
+        <ol class="numbered-list reveal">
+          <li>
+            <span class="num-badge">1</span>
+            <span class="num-text">Teoria: czym jest LLM, tokenizacja, modele Claude, okno kontekstowe</span>
+          </li>
+          <li>
+            <span class="num-badge">2</span>
+            <span class="num-text">Claude Code — narzędzia, uprawnienia, bezpieczeństwo</span>
+          </li>
+          <li>
+            <span class="num-badge">3</span>
+            <span class="num-text">Podejście agentowe i pętla agentowa</span>
+          </li>
+          <li>
+            <span class="num-badge">4</span>
+            <span class="num-text">CLAUDE.md i zarządzanie kontekstem</span>
+          </li>
+          <li>
+            <span class="num-badge">5</span>
+            <span class="num-text">Techniki prompt engineeringu</span>
+          </li>
+          <li>
+            <span class="num-badge">6</span>
+            <span class="num-text">Adaptive Thinking i wybór modelu</span>
+          </li>
+          <li>
+            <span class="num-badge">7</span>
+            <span class="num-text">Plan Mode — zaawansowane planowanie</span>
+          </li>
+          <li>
+            <span class="num-badge">8</span>
+            <span class="num-text">Warsztaty praktyczne (5 ćwiczeń hands-on)</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 6 — Czym jest Claude Code -->
+  <section class="slide" id="s6">
+    <div class="sidebar"><span class="sidebar-label">Czym jest Claude Code</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Czym jest Claude Code?</h2>
+      </div>
+      <div class="slide-body stagger">
+        <p class="reveal">Claude Code to interfejs CLI, który łączy się z modelami LLM Anthropic poprzez API. Wszystkie odpowiedzi, analiza kodu i decyzje generuje model językowy działający <strong>po stronie Anthropic</strong> — nie lokalnie.</p>
+        <div class="reveal" style="display:flex; gap: var(--content-gap); align-items: stretch; flex:1; min-height:0;">
+          <div style="display:flex; flex-direction:column; gap:0.5em; flex:1;">
+            <div class="card featured" style="flex:1;">
+              <div class="card-title">Twój komputer</div>
+              <p><code>claude</code> (CLI)<br>Twoje pliki<br>Komendy Bash</p>
+              <div style="margin-top:0.5em;">
+                <div class="flow" style="flex-wrap:nowrap; gap:0.2em;">
+                  <div class="flow-box" style="font-size:var(--label-size);">Read</div>
+                  <div class="flow-box" style="font-size:var(--label-size);">Edit</div>
+                  <div class="flow-box" style="font-size:var(--label-size);">Bash</div>
+                  <div class="flow-box" style="font-size:var(--label-size);">Grep</div>
+                  <div class="flow-box" style="font-size:var(--label-size);">Glob</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.4em;">
+            <div style="font-size:var(--small-size); color:var(--yellow-dark); font-weight:700; text-align:center;">API call ▶</div>
+            <div style="width:60px; height:2px; background:var(--yellow-dark);"></div>
+            <div style="font-size:var(--small-size); color:var(--gray-text); text-align:center;">◀ odpowiedź</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.5em; flex:1;">
+            <div class="card" style="flex:1; border-top-color:var(--black);">
+              <div class="card-title">Anthropic Cloud</div>
+              <p><strong>Claude LLM (myśli)</strong><br>Analizuje · Decyduje · Generuje kod</p>
+            </div>
+          </div>
+        </div>
+        <blockquote class="reveal"><strong>Bez połączenia z API</strong> Claude Code nie działa — model w chmurze jest mózgiem, CLI jest tylko interfejsem.</blockquote>
+      </div>
+      <div class="hands-on reveal">
+        <div class="ho-label">Hands-on</div>
+        <p>Uruchom <code>claude</code> w terminalu i napisz: <strong>Cześć! Przedstaw się — kim jesteś i co potrafisz?</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 7 — LLM -->
+  <section class="slide" id="s7">
+    <div class="sidebar"><span class="sidebar-label">LLM</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Czym jest LLM?</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-3 reveal">
+          <div class="card">
+            <div class="card-title">LLM (Large Language Model)</div>
+            <p>Model językowy, który przewiduje kolejny fragment tekstu (token) na podstawie kontekstu. Jak T9 w starym telefonie, ale z ogromną wiedzą o języku, kodzie i logice.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Działanie probabilistyczne</div>
+            <p>Model oblicza prawdopodobieństwo każdego możliwego następnego tokenu i wybiera. Ten sam prompt może dać różne odpowiedzi.</p>
+          </div>
+          <div class="card danger">
+            <div class="card-title">Nie "wiedzą" — szacują</div>
+            <p>Gdy model nie ma dobrego kandydata, "zgaduje" — stąd halucynacje. Zawsze weryfikuj wyniki.</p>
+          </div>
+        </div>
+        <div class="highlight-box reveal">
+          <strong>Kluczowe pojęcia:</strong> Token · Prawdopodobieństwo · Kontekst · Halucynacje
+        </div>
+        <div class="reveal" style="display:flex; gap:var(--content-gap); align-items:center;">
+          <div style="flex:1;">
+            <div class="flow">
+              <div class="flow-box">Prompt</div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-box hi">Model</div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-box">P(token₁)</div>
+              <div class="flow-arrow">→</div>
+              <div class="flow-box dark">Wynik</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 8 — LLM -->
+  <section class="slide" id="s8">
+    <div class="sidebar"><span class="sidebar-label">LLM</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Jak model przewiduje — przykłady</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal">
+          <div class="card featured">
+            <div class="card-title">"Stolica Polski to ___"</div>
+            <table class="tbl" style="margin-top:0.4em;">
+              <thead><tr><th>Token</th><th>Prawdopodobieństwo</th></tr></thead>
+              <tbody>
+                <tr><td><strong>"Warszawa"</strong></td><td><strong>92.5%</strong></td></tr>
+                <tr><td>"miasto"</td><td>2.1%</td></tr>
+                <tr><td>"War"</td><td>1.8%</td></tr>
+                <tr><td>"Kraków"</td><td>0.2%</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card featured">
+            <div class="card-title">"public static void ___"</div>
+            <table class="tbl" style="margin-top:0.4em;">
+              <thead><tr><th>Token</th><th>Prawdopodobieństwo</th></tr></thead>
+              <tbody>
+                <tr><td><strong>"main"</strong></td><td><strong>85%</strong></td></tr>
+                <tr><td>"run"</td><td>5%</td></tr>
+                <tr><td>"init"</td><td>3%</td></tr>
+                <tr><td>"test"</td><td>2%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="highlight-box reveal">
+          <strong>Kod jest bardziej przewidywalny niż język naturalny</strong> — ścisła składnia, powtarzalne wzorce (try-catch, REST, testy) — stąd wysoka skuteczność LLM w programowaniu.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 9 — LLM -->
+  <section class="slide" id="s9">
+    <div class="sidebar"><span class="sidebar-label">LLM</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Knowledge cutoff</h2>
+      </div>
+      <div class="slide-body stagger">
+        <h3 class="reveal">Skąd model "wie" nowe rzeczy?</h3>
+        <div class="cards cols-3 reveal">
+          <div class="card">
+            <div class="card-title">Model zamrożony po treningu</div>
+            <p>Model nie uczy się z Twoich promptów ani kodu — po treningu jest "zamrożony". Inference to korzystanie z gotowego modelu, nie dalsze uczenie.</p>
+          </div>
+          <div class="card danger">
+            <div class="card-title">Knowledge cutoff</div>
+            <p>Każdy model ma datę odcięcia wiedzy:<br>Opus 4.6: maj 2025<br>Sonnet 4.6: sierpień 2025<br>Haiku 4.5: luty 2025<br><strong>Nowsze informacje = ryzyko halucynacji</strong></p>
+          </div>
+          <div class="card success">
+            <div class="card-title">Rozwiązania</div>
+            <p><strong>WebFetch</strong> — pobieranie treści z URL<br><strong>MCP</strong> — łączenie z zewnętrznymi źródłami danych</p>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="flow">
+            <div class="flow-box hi">Wiedza z treningu<br>(zamrożona)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box dark">Knowledge cutoff<br>(np. sie. 2025)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box" style="border-color:var(--red); background:var(--red-light);">Po dacie: halucynacje!</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box hi">WebFetch / MCP<br>(świeże dane)</div>
+          </div>
+        </div>
+      </div>
+      <div class="hands-on reveal">
+        <div class="ho-label">Hands-on</div>
+        <p>Zapytaj Claude o coś po dacie odcięcia wiedzy, np. <strong>Jaka jest najnowsza wersja Spring Boot?</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 10 — LLM -->
+  <section class="slide" id="s10">
+    <div class="sidebar"><span class="sidebar-label">LLM</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Tokenizacja</h2>
+      </div>
+      <div class="slide-body stagger">
+        <p class="reveal"><strong>Token</strong> to podstawowa jednostka tekstu dla modelu — nie zawsze równa się jednemu słowu. Tokenizer rozbija tekst na fragmenty ze swojego słownika (~100 000 tokenów):</p>
+        <div class="cards cols-2 reveal">
+          <div class="card featured">
+            <div class="card-title">Angielski</div>
+            <pre style="margin-top:0.3em; background:#1a1a2e; font-size:var(--small-size);">"authentication" → 1 token
+(częste angielskie słowo)</pre>
+          </div>
+          <div class="card danger">
+            <div class="card-title">Polski (+70% tokenów!)</div>
+            <pre style="margin-top:0.3em; background:#1a1a2e; font-size:var(--small-size);">"uwierzytelniania" → 4 tokeny
+(polskie słowo rozbijane na kawałki)</pre>
+          </div>
+        </div>
+        <div class="reveal">
+          <table class="tbl">
+            <thead>
+              <tr><th>Język</th><th>Tekst</th><th>Tokeny</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>EN</td>
+                <td><code>"Create a user authentication service"</code></td>
+                <td><strong>~7 tokenów</strong></td>
+              </tr>
+              <tr>
+                <td>PL</td>
+                <td><code>"Stwórz serwis uwierzytelniania użytkowników"</code></td>
+                <td><strong>~12 tokenów (+70%!)</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <blockquote class="reveal">Tokeny to waluta LLM — za nie płacisz i one definiują limity.</blockquote>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLAJD 11 — LLM -->
+  <section class="slide" id="s11">
+    <div class="sidebar"><span class="sidebar-label">LLM</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Modele dostępne w Anthropic / Claude Code</h2>
+      </div>
+      <div class="slide-body stagger">
+        <table class="tbl reveal">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Charakterystyka</th>
+              <th>Knowledge cutoff</th>
+              <th>Input / Output (za 1M tokenów)</th>
+              <th>Kiedy używać</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Claude Opus 4.6</strong></td>
+              <td>Najbardziej zaawansowany, głęboki reasoning</td>
+              <td>Maj 2025</td>
+              <td>$5 / $25</td>
+              <td>Planowanie architektury, złożony debugging, code review</td>
+            </tr>
+            <tr>
+              <td><strong>Claude Sonnet 4.6</strong> <span class="tag">domyślny</span></td>
+              <td>Złoty środek: jakość + szybkość</td>
+              <td>Sierpień 2025</td>
+              <td>$3 / $15</td>
+              <td>Codzienna praca: coding, testy, refactoring — 80% zadań</td>
+            </tr>
+            <tr>
+              <td><strong>Claude Haiku 4.5</strong></td>
+              <td>Najszybszy i najtańszy</td>
+              <td>Luty 2025</td>
+              <td>$1 / $5</td>
+              <td>Boilerplate, CRUD, szybkie pytania</td>
+            </tr>
+          </tbody>
+        </table>
+        <blockquote class="reveal"><strong>Output jest ~5× droższy niż input</strong> — odpowiedź modelu kosztuje znacznie więcej niż prompt. Dlatego wybór modelu i kontrola długości odpowiedzi mają bezpośredni wpływ na koszty.</blockquote>
+      </div>
+      <div class="hands-on reveal">
+        <div class="ho-label">Hands-on</div>
+        <p>Uruchom Claude Code i wpisz <code>/model</code> — sprawdź jaki model jest aktywny. Użyj strzałek aby zobaczyć dostępne modele. Potem wpisz <code>/cost</code> — zobacz ile tokenów zużyłeś w sesji.</p>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s12">
+  <div class="sidebar"><span class="sidebar-label">Okno kontekstowe</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Pamięć konwersacji</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:var(--element-gap);">
+        LLM jest <strong style="color:var(--black);">stateless</strong> — nie pamięta niczego między sesjami. Każde zapytanie to nowa, izolowana operacja.
+        <strong style="color:var(--black);">Okno kontekstowe to rozwiązanie</strong>: wszystko co Claude "pamięta" jest dosłownie zawarte w tym oknie jako ciąg tokenów.
+      </p>
+
+      <div class="reveal" style="background:var(--gray-light);border-radius:6px;padding:clamp(0.6rem,1.2vw,1.1rem);font-family:'Courier New',monospace;font-size:var(--small-size);margin-bottom:var(--content-gap);">
+        <div style="color:var(--gray-text);margin-bottom:0.5em;font-family:'Barlow';font-weight:700;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.1em;">Okno kontekstowe (~200 000 tokenów)</div>
+        <div style="display:grid;grid-template-columns:1fr 2fr 1.2fr;gap:0.5em;">
+          <div style="background:var(--yellow-light);border:1px solid var(--yellow);border-radius:4px;padding:0.6em;font-size:var(--small-size);">
+            <div style="font-family:'Barlow';font-weight:800;color:var(--black);margin-bottom:0.3em;">System prompt</div>
+            <div style="color:var(--gray-text);font-size:var(--label-size);">~7%</div>
+            <div style="color:var(--gray-text);font-size:var(--label-size);">CLAUDE.md</div>
+            <div style="color:var(--green);font-size:var(--label-size);margin-top:0.4em;">↑ zawsze na początku</div>
+          </div>
+          <div style="background:var(--white);border:1px solid var(--gray-mid);border-radius:4px;padding:0.6em;font-size:var(--small-size);">
+            <div style="font-family:'Barlow';font-weight:800;color:var(--black);margin-bottom:0.3em;">Messages (historia sesji)</div>
+            <div style="display:flex;gap:2px;margin:0.4em 0;align-items:center;">
+              <div style="height:12px;background:var(--black);flex:0 0 55%;border-radius:2px 0 0 2px;"></div>
+              <div style="height:12px;background:var(--gray-mid);flex:0 0 45%;border-radius:0 2px 2px 0;"></div>
+            </div>
+            <div style="color:var(--gray-text);font-size:var(--label-size);">rośnie z każdą odpowiedzią</div>
+            <div style="color:var(--gray-text);font-size:var(--label-size);margin-top:0.4em;">↑ zapełnia się stopniowo</div>
+          </div>
+          <div style="background:var(--green-light);border:1px solid var(--green);border-radius:4px;padding:0.6em;font-size:var(--small-size);">
+            <div style="font-family:'Barlow';font-weight:800;color:var(--black);margin-bottom:0.3em;">Free space</div>
+            <div style="display:flex;gap:2px;margin:0.4em 0;align-items:center;">
+              <div style="height:12px;background:var(--green);opacity:0.3;flex:1;border-radius:2px;"></div>
+            </div>
+            <div style="color:var(--gray-text);font-size:var(--label-size);">maleje dynamicznie</div>
+            <div style="color:var(--green);font-size:var(--label-size);margin-top:0.4em;">↑ na to czekasz</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal" style="background:var(--gray-light);border-top:4px solid var(--black);border-radius:0 0 6px 6px;padding:clamp(0.55rem,1.1vw,1rem);">
+        <div style="font-family:'Barlow';font-weight:800;font-size:var(--h3-size);color:var(--black);margin-bottom:0.3em;">Kontekst nadpisuje wiedzę wytrenowaną</div>
+        <p style="font-size:var(--body-size);color:var(--gray-text);margin:0;">
+          To co podamy w oknie kontekstowym ma <strong style="color:var(--black);">priorytet nad wiedzą z treningu</strong>. Jeśli piszesz, że funkcja <code style="background:var(--yellow-light);padding:0.1em 0.3em;border-radius:3px;font-size:0.9em;">login()</code> rzuca <code style="background:var(--yellow-light);padding:0.1em 0.3em;border-radius:3px;font-size:0.9em;">TokenExpiredException</code> — model użyje tej informacji zamiast własnych założeń. Stąd siła CLAUDE.md i systemu promptów.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s13">
+  <div class="sidebar"><span class="sidebar-label">Okno kontekstowe</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Pułapki okna kontekstowego</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="cards cols-3 reveal" style="margin-bottom:var(--content-gap);">
+        <div class="card danger">
+          <div style="font-family:'Barlow';font-weight:800;font-size:var(--h3-size);color:var(--red);margin-bottom:0.2em;">Przepełnienie</div>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Gdy okno się zapełnia, Claude Code automatycznie kompresuje wcześniejsze wiadomości (<code style="background:var(--red-light);padding:0.1em 0.3em;border-radius:3px;">/compact</code>). Tracisz część informacji = model może <strong>halucynować</strong> brakujące szczegóły.</p>
+        </div>
+        <div class="card danger">
+          <div style="font-family:'Barlow';font-weight:800;font-size:var(--h3-size);color:var(--red);margin-bottom:0.2em;">"Zagubiony środek"</div>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Model najlepiej pamięta <strong>początek</strong> (system prompt) i <strong>koniec</strong> (ostatnie wiadomości). Informacje ze środka długiej konwersacji mają tendencję do "znikania".</p>
+        </div>
+        <div class="card danger">
+          <div style="font-family:'Barlow';font-weight:800;font-size:var(--h3-size);color:var(--red);margin-bottom:0.2em;">Sprzeczności</div>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">W długiej sesji mogą pojawić się sprzeczne instrukcje = <strong>niespójne odpowiedzi</strong>.</p>
+        </div>
+      </div>
+
+      <div class="reveal" style="background:var(--gray-light);border-radius:6px;padding:clamp(0.6rem,1.2vw,1.1rem);font-size:var(--small-size);">
+        <div style="font-family:'Barlow';font-weight:700;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-text);margin-bottom:0.6em;">Okno kontekstowe — strefy pamięci modelu</div>
+        <div style="display:grid;grid-template-columns:1.1fr 1.6fr 1.1fr;gap:0.5em;">
+          <div style="background:var(--green-light);border:2px solid var(--green);border-radius:4px;padding:0.6em;">
+            <div style="font-family:'Barlow';font-weight:800;color:var(--green);font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3em;">PEWNOSC ✓</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);">System prompt</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);">CLAUDE.md</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);margin-top:0.2em;">(zawsze)</div>
+          </div>
+          <div style="background:var(--red-light);border:2px solid var(--red);border-radius:4px;padding:0.6em;">
+            <div style="font-family:'Barlow';font-weight:800;color:var(--red);font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3em;">RYZYKO ⚠ (Lost in Middle)</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);">Środek sesji: stare wiadomości</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);">→ mogą być kompresowane</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);">→ szczegóły giną</div>
+          </div>
+          <div style="background:var(--green-light);border:2px solid var(--green);border-radius:4px;padding:0.6em;">
+            <div style="font-family:'Barlow';font-weight:800;color:var(--green);font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3em;">PEWNOSC ✓</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);">Ostatnie wiadomości</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);">→ zawsze pamiętane</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);margin-top:0.2em;">(na końcu okna)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s14">
+  <div class="sidebar"><span class="sidebar-label">Okno kontekstowe</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">CLAUDE.md — trwała pamięć projektu zawsze ładowana do okna</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:var(--content-gap);">
+        CLAUDE.md to plik Markdown czytany na początku <strong style="color:var(--black);">każdej</strong> sesji. Daje Claude kontekst, którego nie może wywnioskować z kodu:
+      </p>
+
+      <table class="tbl reveal" style="margin-bottom:var(--content-gap);">
+        <thead>
+          <tr>
+            <th>Zakres</th>
+            <th>Lokalizacja</th>
+            <th>Współdzielony?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color:var(--black);">Projekt (zespół)</strong></td>
+            <td><code style="background:var(--yellow-light);padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;">./CLAUDE.md</code></td>
+            <td><span style="color:var(--green);font-weight:700;">Tak (git)</span></td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">Projekt (osobisty)</strong></td>
+            <td><code style="background:var(--yellow-light);padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;">./CLAUDE.local.md</code></td>
+            <td><span style="color:var(--red);font-weight:700;">Nie (.gitignore)</span></td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">Użytkownik (globalny)</strong></td>
+            <td><code style="background:var(--yellow-light);padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;">~/.claude/CLAUDE.md</code></td>
+            <td><span style="color:var(--red);font-weight:700;">Nie</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="cards cols-2 reveal" style="margin-bottom:var(--content-gap);">
+        <div class="card success">
+          <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--green);margin-bottom:0.3em;">CO WARTO UMIESZCZAĆ</div>
+          <ul style="margin:0;padding-left:1.2em;font-size:var(--small-size);color:var(--gray-text);">
+            <li>komendy build/test</li>
+            <li>reguły stylu kodu</li>
+            <li>konwencje nazewnictwa</li>
+            <li>decyzje architektoniczne</li>
+          </ul>
+        </div>
+        <div class="card danger">
+          <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--red);margin-bottom:0.3em;">CZEGO UNIKAĆ</div>
+          <ul style="margin:0;padding-left:1.2em;font-size:var(--small-size);color:var(--gray-text);">
+            <li>rzeczy które Claude sam zobaczy w kodzie</li>
+            <li>standardowe konwencje języka</li>
+            <li>przenoś szczegóły do <code style="font-size:0.9em;">.claude/rules/</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="hands-on reveal">
+      <div class="ho-label">Hands-on</div>
+      <p style="margin:0;font-size:var(--small-size);color:var(--black);">Utwórz plik CLAUDE.md z dowolnym wpisem</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s15">
+  <div class="sidebar"><span class="sidebar-label">Okno kontekstowe</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Context Usage — <code style="font-size:0.75em;background:var(--yellow-light);padding:0.1em 0.4em;border-radius:4px;">/context</code></h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:var(--content-gap);">
+        Wpisz <code style="background:var(--yellow-light);padding:0.1em 0.4em;border-radius:3px;">/context</code> aby zobaczyć jak okno kontekstowe jest faktycznie podzielone. Kategorie widoczne w outputcie:
+      </p>
+
+      <table class="tbl reveal" style="margin-bottom:var(--content-gap);">
+        <thead>
+          <tr>
+            <th>Kategoria</th>
+            <th>Opis składowych</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color:var(--black);">System prompt</strong></td>
+            <td style="color:var(--gray-text);">CLAUDE.md · instrukcje projektowe · reguły globalne</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">System tools</strong></td>
+            <td style="color:var(--gray-text);">Definicje wbudowanych narzędzi Claude Code (Read, Edit, Bash, Glob…)</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">Custom agents</strong></td>
+            <td style="color:var(--gray-text);">Własne subagenty zdefiniowane w <code style="background:var(--yellow-light);padding:0.1em 0.3em;border-radius:3px;font-size:0.85em;">.claude/agents/</code></td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">Memory files</strong></td>
+            <td style="color:var(--gray-text);">Załadowane pliki CLAUDE.md (globalny, projektowy, lokalny, <code style="background:var(--yellow-light);padding:0.1em 0.3em;border-radius:3px;font-size:0.85em;">rules/</code>)</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">Skills</strong></td>
+            <td style="color:var(--gray-text);">Własne komendy slash z <code style="background:var(--yellow-light);padding:0.1em 0.3em;border-radius:3px;font-size:0.85em;">.claude/skills/</code> aktywne w sesji</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">Messages</strong></td>
+            <td style="color:var(--gray-text);">Historia konwersacji + wyniki narzędzi (Read, Grep, Bash output…)</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">Free space</strong></td>
+            <td style="color:var(--gray-text);">Dostępne tokeny (~149k w pustej sesji)</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--black);">Autocompact buffer</strong></td>
+            <td style="color:var(--gray-text);">Rezerwa na kompresję — gdy Messages wypełni bufor, Claude kompaktuje automatycznie</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <blockquote class="reveal">
+        Wartości procentowe zmieniają się dynamicznie w trakcie sesji. System prompt + tools to stały koszt ~7% przy starcie — reszta to Twoja rozmowa.
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s16">
+  <div class="sidebar"><span class="sidebar-label">Okno kontekstowe</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Jak zarządzać kontekstem?</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="cards cols-2 reveal" style="margin-bottom:var(--content-gap);">
+        <div class="card featured">
+          <div style="font-family:'Courier New';font-weight:700;font-size:var(--h3-size);color:var(--black);margin-bottom:0.2em;">/clear</div>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Resetuj kontekst między niepowiązanymi zadaniami. Nowy start = czyste okno.</p>
+        </div>
+        <div class="card featured">
+          <div style="font-family:'Courier New';font-weight:700;font-size:var(--h3-size);color:var(--black);margin-bottom:0.2em;">/compact</div>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Kompresuj kontekst zachowując najważniejsze informacje. Claude wykonuje to też automatycznie gdy okno się zapełnia.</p>
+        </div>
+        <div class="card featured">
+          <div style="font-family:'Courier New';font-weight:700;font-size:var(--h3-size);color:var(--black);margin-bottom:0.2em;">/context</div>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Sprawdź wizualnie ile okna kontekstowego zużyłeś.</p>
+        </div>
+        <div class="card">
+          <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);margin-bottom:0.2em;">CLAUDE.md jako trwała pamięć</div>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Kluczowe instrukcje nie giną przy kompresji (ładowane zawsze na początku).</p>
+        </div>
+      </div>
+
+      <div class="reveal" style="background:var(--yellow-light);border-left:4px solid var(--yellow-dark);border-radius:0 6px 6px 0;padding:0.55em 0.95em;">
+        <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);margin-bottom:0.2em;">Dziel zadania na mniejsze</div>
+        <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Krótsze konwersacje = mniejsze ryzyko utraty kontekstu.</p>
+      </div>
+    </div>
+    <div class="hands-on reveal">
+      <div class="ho-label">Hands-on</div>
+      <p style="margin:0;font-size:var(--small-size);color:var(--black);">Wpisz <code>/context</code> — zobacz pasek wizualny zużycia okna kontekstowego. Potem wpisz <code>/clear</code> — zresetuj kontekst i zauważ jak pasek się opróżnia.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s17">
+  <div class="sidebar"><span class="sidebar-label">Bezpieczeństwo</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Do czego Claude ma dostęp?</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="cards cols-2 reveal" style="margin-bottom:var(--content-gap);">
+        <div class="card success">
+          <div style="font-family:'Barlow';font-weight:900;font-size:var(--small-size);color:var(--green);margin-bottom:0.4em;">BEZ PYTANIA</div>
+          <div style="font-size:var(--label-size);color:var(--gray-text);margin-bottom:0.3em;">w obrębie katalogu projektu</div>
+          <ul style="margin:0;padding-left:1.2em;font-size:var(--small-size);color:var(--gray-text);">
+            <li>Czytanie plików</li>
+            <li>Grep / Glob (szukaj kodu)</li>
+            <li>WebSearch (szukaj w sieci)</li>
+          </ul>
+        </div>
+        <div class="card danger">
+          <div style="font-family:'Barlow';font-weight:900;font-size:var(--small-size);color:var(--red);margin-bottom:0.4em;">WYMAGA ZGODY UŻYTKOWNIKA</div>
+          <ul style="margin:0;padding-left:1.2em;font-size:var(--small-size);color:var(--gray-text);">
+            <li>Wyszukiwanie poza katalogiem projektu</li>
+            <li>Modyfikacja plików (Edit, Write)</li>
+            <li>Komendy Bash (git, npm, testy, build)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="reveal" style="margin-bottom:var(--content-gap);">
+        <div style="font-family:'Barlow';font-weight:800;font-size:var(--h3-size);color:var(--black);margin-bottom:0.4em;">Opcje przy pytaniu o zgodę</div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Opcja</th>
+              <th>Znaczenie</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong style="color:var(--black);">Yes</strong></td>
+              <td style="color:var(--gray-text);">Jednorazowa zgoda</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--black);">No</strong></td>
+              <td style="color:var(--gray-text);">Odrzuć</td>
+            </tr>
+            <tr>
+              <td><strong style="color:var(--black);">Yes, allow … during this session</strong></td>
+              <td style="color:var(--gray-text);">Bash: trwale per projekt · Edit: do końca sesji</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="hands-on reveal">
+      <div class="ho-label">Hands-on</div>
+      <p style="margin:0;font-size:var(--small-size);color:var(--black);">Przeczytaj pierwszy plik z katalogu roboczego. Przeczytaj pierwszy plik z katalogu domowego.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s18">
+  <div class="sidebar"><span class="sidebar-label">Bezpieczeństwo</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Reguły uprawnień (Allow / Ask / Deny)</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="reveal" style="margin-bottom:var(--content-gap);">
+        <div class="perm-row">
+          <div class="perm-badge allow">Allow</div>
+          <div style="padding:0.45em 0.9em;font-size:var(--small-size);color:var(--gray-text);display:flex;align-items:center;">Claude używa narzędzia bez pytania</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-badge ask">Ask</div>
+          <div style="padding:0.45em 0.9em;font-size:var(--small-size);color:var(--gray-text);display:flex;align-items:center;">Claude pyta o potwierdzenie za każdym razem</div>
+        </div>
+        <div class="perm-row">
+          <div class="perm-badge deny">Deny</div>
+          <div style="padding:0.45em 0.9em;font-size:var(--small-size);color:var(--gray-text);display:flex;align-items:center;">Claude nie może użyć narzędzia w ogóle</div>
+        </div>
+        <div style="font-size:var(--small-size);color:var(--gray-text);margin-top:0.4em;">Kolejność: deny → ask → allow. <strong style="color:var(--black);">Deny zawsze wygrywa.</strong></div>
+      </div>
+
+      <div class="cards cols-2 reveal" style="margin-bottom:var(--content-gap);">
+        <div class="card">
+          <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);margin-bottom:0.35em;">Przykłady wzorców</div>
+          <div style="font-family:'Courier New';font-size:var(--small-size);color:var(--gray-text);line-height:1.7;">
+            <div><span style="color:var(--black);">Bash(npm run build)</span> <span style="color:var(--gray-mid);">dokładna komenda</span></div>
+            <div><span style="color:var(--black);">Bash(npm run *)</span> <span style="color:var(--gray-mid);">wszystkie komendy npm run</span></div>
+            <div><span style="color:var(--black);">Edit(/src/**/*.ts)</span> <span style="color:var(--gray-mid);">edycja .ts w src</span></div>
+            <div><span style="color:var(--black);">Read(./.env)</span> <span style="color:var(--gray-mid);">odczyt pliku .env</span></div>
+            <div><span style="color:var(--black);">WebFetch(domain:github.com)</span></div>
+            <div><span style="color:var(--black);">mcp__context7__*</span> <span style="color:var(--gray-mid);">narzędzia MCP serwera</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);margin-bottom:0.35em;">Gdzie konfigurować</div>
+          <div style="font-family:'Courier New';font-size:var(--small-size);color:var(--gray-text);line-height:1.8;">
+            <div><span style="color:var(--black);">~/.claude/settings.json</span></div>
+            <div style="color:var(--gray-text);font-size:var(--label-size);margin-left:1em;margin-bottom:0.4em;">ustawienia użytkownika</div>
+            <div><span style="color:var(--black);">.claude/settings.json</span></div>
+            <div style="color:var(--gray-text);font-size:var(--label-size);margin-left:1em;margin-bottom:0.4em;">ustawienia projektu (git)</div>
+            <div><span style="color:var(--black);">.claude/settings.local.json</span></div>
+            <div style="color:var(--gray-text);font-size:var(--label-size);margin-left:1em;">lokalne (nie w git)</div>
+          </div>
+          <div style="font-size:var(--label-size);color:var(--gray-text);margin-top:0.4em;border-top:1px solid var(--gray-mid);padding-top:0.4em;">Priorytet: CLI flagi &gt; local &gt; projekt &gt; user</div>
+        </div>
+      </div>
+    </div>
+    <div class="hands-on reveal">
+      <div class="ho-label">Hands-on</div>
+      <p style="margin:0 0 0.3em;font-size:var(--small-size);color:var(--black);">Podgląd aktywnych reguł — komenda: <code>/permissions</code></p>
+      <p style="margin:0;font-size:var(--small-size);color:var(--black);">Wpisz prompt: <em>"Sklonuj repozytorium https://github.com/boldare/claude-code-workshop do aktualnego katalogu."</em></p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s19">
+  <div class="sidebar"><span class="sidebar-label">Bezpieczeństwo</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Tryby uprawnień</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="reveal" style="margin-bottom:var(--content-gap);">
+        <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--gray-text);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5em;">Shift+Tab przełącza między</div>
+        <div class="mode-card">
+          <div class="mode-name">default</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">Pyta o edycje plików i komendy Bash</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-name">plan</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">Tylko czyta — nie modyfikuje ani nie wykonuje</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-name">acceptEdits</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">Auto-akceptuje edycje, pyta o Bash</div>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--gray-text);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5em;">Tryby specjalne (wymagają jawnej konfiguracji)</div>
+        <div class="mode-card special">
+          <div class="mode-name" style="color:var(--red);">dontAsk</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">
+            <div style="font-size:var(--label-size);color:var(--gray-text);margin-bottom:0.15em;">(tylko CLI)</div>
+            Odmawia wszystkiego poza jawnie dozwolonym w regułach permissions
+          </div>
+        </div>
+        <div class="mode-card special">
+          <div class="mode-name" style="color:var(--red);">bypassPermissions</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">
+            <div style="font-size:var(--label-size);color:var(--red);margin-bottom:0.15em;">--dangerously-skip-permissions</div>
+            Pomija WSZYSTKIE pytania. Tylko w izolowanych środowiskach!
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s20">
+  <div class="sidebar"><span class="sidebar-label">Bezpieczeństwo</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Hierarchia priorytetów uprawnień</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="reveal" style="margin-bottom:var(--content-gap);">
+        <div style="font-family:'Barlow';font-weight:700;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-text);text-align:center;margin-bottom:0.5em;">NAJWYŻSZY PRIORYTET — zawsze wygrywa</div>
+
+        <div class="prio-layer" style="background:#111111;">
+          <div class="prio-num" style="background:var(--yellow);color:var(--black);">1</div>
+          <div>
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--white);">Argumenty CLI</div>
+            <div style="font-family:'Courier New';font-size:var(--small-size);color:var(--gray-mid);">claude --dangerously-skip-permissions</div>
+          </div>
+        </div>
+
+        <div class="prio-layer" style="background:#2a2a2a;">
+          <div class="prio-num" style="background:var(--yellow);color:var(--black);">2</div>
+          <div>
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--white);">Lokalne ustawienia projektu</div>
+            <div style="font-family:'Courier New';font-size:var(--small-size);color:var(--gray-mid);">.claude/settings.local.json &nbsp;<span style="color:var(--red);">(nie w git!)</span></div>
+          </div>
+        </div>
+
+        <div class="prio-layer" style="background:#3d3d3d;">
+          <div class="prio-num" style="background:var(--yellow);color:var(--black);">3</div>
+          <div>
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--white);">Współdzielone ustawienia projektu</div>
+            <div style="font-family:'Courier New';font-size:var(--small-size);color:var(--gray-mid);">.claude/settings.json &nbsp;<span style="color:var(--green);">(w git)</span></div>
+          </div>
+        </div>
+
+        <div class="prio-layer" style="background:#555555;">
+          <div class="prio-num" style="background:var(--yellow);color:var(--black);">4</div>
+          <div>
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--white);">Ustawienia użytkownika</div>
+            <div style="font-family:'Courier New';font-size:var(--small-size);color:var(--gray-mid);">~/.claude/settings.json</div>
+          </div>
+        </div>
+
+        <div style="font-family:'Barlow';font-weight:700;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-text);text-align:center;margin-top:0.5em;">NAJNIŻSZY PRIORYTET — można nadpisać poziomem wyżej</div>
+      </div>
+
+      <blockquote class="reveal">
+        <strong>Praktyczna zasada:</strong> deny na poziomie organizacji blokuje wszystko co niżej — idealny do wymuszenia polityki bezpieczeństwa w całym zespole.
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s21">
+  <div class="sidebar"><span class="sidebar-label">Podejście agentowe czyli Ask vs Run</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Podejście agentowe — Agentic Loop</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:var(--content-gap);">
+        Claude Code nie generuje jednorazowej odpowiedzi — działa w <strong style="color:var(--black);">pętli agentowej</strong>, iteracyjnie zbliżając się do rozwiązania. To fundamentalna różnica względem Copilota czy czata.
+      </p>
+
+      <div class="cards cols-2 reveal">
+        <div class="card" style="border-top-color:var(--gray-mid);">
+          <div style="font-family:'Barlow';font-weight:900;font-size:var(--h3-size);color:var(--gray-text);margin-bottom:0.2em;">GitHub Copilot (Ask)</div>
+          <div style="font-family:'Barlow';font-weight:700;font-size:var(--label-size);color:var(--gray-text);margin-bottom:0.5em;text-transform:uppercase;letter-spacing:0.05em;">"Konsultant"</div>
+          <div style="font-family:'Courier New';font-size:var(--small-size);color:var(--gray-text);line-height:1.8;background:var(--white);padding:0.5em;border-radius:4px;">
+            <div>Ty: "Napraw buga w logowaniu"</div>
+            <div style="margin:0.3em 0;color:var(--gray-mid);">↓</div>
+            <div>Copilot: "Oto propozycja: [kod]"</div>
+            <div style="margin:0.3em 0;color:var(--gray-mid);">↓</div>
+            <div>Ty: kopiujesz kod</div>
+            <div>Ty: wklejasz</div>
+            <div>Ty: testujesz</div>
+            <div>Ty: wracasz po poprawkę...</div>
+          </div>
+          <div style="font-size:var(--label-size);color:var(--red);margin-top:0.4em;font-family:'Barlow';font-weight:700;">Pętla po TWOJEJ stronie ↩</div>
+        </div>
+        <div class="card featured">
+          <div style="font-family:'Barlow';font-weight:900;font-size:var(--h3-size);color:var(--black);margin-bottom:0.2em;">Claude Code</div>
+          <div style="font-family:'Barlow';font-weight:700;font-size:var(--label-size);color:var(--gray-text);margin-bottom:0.5em;text-transform:uppercase;letter-spacing:0.05em;">"Wykonawca"</div>
+          <div style="font-family:'Courier New';font-size:var(--small-size);color:var(--gray-text);line-height:1.8;background:var(--white);padding:0.5em;border-radius:4px;">
+            <div>Ty: "Napraw buga w logowaniu"</div>
+            <div style="margin:0.3em 0;color:var(--gray-mid);">↓</div>
+            <div>Claude: <span style="background:var(--yellow-light);padding:0.05em 0.25em;border-radius:2px;">[Read]</span> LoginService.java</div>
+            <div>Claude: <span style="background:var(--yellow-light);padding:0.05em 0.25em;border-radius:2px;">[Grep]</span> szuka testów</div>
+            <div>Claude: <span style="background:var(--yellow-light);padding:0.05em 0.25em;border-radius:2px;">[Edit]</span> naprawia bug</div>
+            <div>Claude: <span style="background:var(--yellow-light);padding:0.05em 0.25em;border-radius:2px;">[Bash]</span> mvn test → FAIL</div>
+            <div>Claude: <span style="background:var(--yellow-light);padding:0.05em 0.25em;border-radius:2px;">[Edit]</span> dodaje mock</div>
+            <div>Claude: <span style="background:var(--yellow-light);padding:0.05em 0.25em;border-radius:2px;">[Bash]</span> mvn test → OK ✓</div>
+            <div>Claude: "Gotowe. Oto co zrobiłem"</div>
+          </div>
+          <div style="font-size:var(--label-size);color:var(--green);margin-top:0.4em;font-family:'Barlow';font-weight:700;">Pętla po stronie CLAUDE'a ↩</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s22">
+  <div class="sidebar"><span class="sidebar-label">Podejście agentowe czyli Ask vs Run</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Pętla agentowa — kroki</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="cards cols-2 reveal" style="margin-bottom:var(--content-gap);">
+        <div style="display:flex;flex-direction:column;gap:0.3em;align-items:center;padding:0.4em;">
+          <div style="background:var(--yellow);border-radius:6px;padding:0.5em 1em;font-family:'Barlow';font-weight:800;font-size:var(--small-size);text-align:center;width:100%;box-sizing:border-box;">1. ODBIERZ ZADANIE<br><span style="font-weight:400;font-size:var(--label-size);">Użytkownik opisuje cel</span></div>
+          <div style="color:var(--gray-text);font-size:1.1em;">↓</div>
+          <div style="background:var(--gray-light);border:2px solid var(--yellow);border-radius:6px;padding:0.5em 1em;font-family:'Barlow';font-weight:800;font-size:var(--small-size);text-align:center;width:100%;box-sizing:border-box;">2. ZAPLANUJ I ZDECYDUJ<br><span style="font-weight:400;font-size:var(--label-size);">Czytaj pliki, analizuj</span></div>
+          <div style="color:var(--gray-text);font-size:1.1em;">↓</div>
+          <div style="background:var(--gray-light);border:2px solid var(--yellow);border-radius:6px;padding:0.5em 1em;font-family:'Barlow';font-weight:800;font-size:var(--small-size);text-align:center;width:100%;box-sizing:border-box;">3. UŻYJ NARZĘDZIA<br><span style="font-weight:400;font-size:var(--label-size);">Read · Edit · Bash · Grep</span></div>
+          <div style="color:var(--gray-text);font-size:1.1em;">↓</div>
+          <div style="background:var(--gray-light);border:2px solid var(--yellow);border-radius:6px;padding:0.5em 1em;font-family:'Barlow';font-weight:800;font-size:var(--small-size);text-align:center;width:100%;box-sizing:border-box;">4. OBSERWUJ WYNIK<br><span style="font-weight:400;font-size:var(--label-size);">Czy test przeszedł? Błąd?</span></div>
+          <div style="color:var(--gray-text);font-size:1.1em;">↓</div>
+          <div style="display:flex;gap:0.5em;width:100%;">
+            <div style="background:var(--red-light);border:2px solid var(--red);border-radius:6px;padding:0.5em 0.7em;font-family:'Barlow';font-weight:800;font-size:var(--small-size);text-align:center;flex:1;">NIE ↩<br><span style="font-weight:400;font-size:var(--label-size);">powrót do kroku 2</span></div>
+            <div style="background:var(--green-light);border:2px solid var(--green);border-radius:6px;padding:0.5em 0.7em;font-family:'Barlow';font-weight:800;font-size:var(--small-size);text-align:center;flex:1;">TAK ✓<br><span style="font-weight:400;font-size:var(--label-size);">Gotowe!</span></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:0.35em;">
+          <div class="card">
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">1. Odbierz zadanie</div>
+            <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Użytkownik opisuje co chce osiągnąć (np. "napraw błąd w logowaniu")</p>
+          </div>
+          <div class="card">
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">2. Zaplanuj i zdecyduj</div>
+            <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Model analizuje kontekst: czyta pliki, przegląda strukturę projektu, planuje podejście</p>
+          </div>
+          <div class="card">
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">3. Użyj narzędzia / Działaj</div>
+            <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Model wywołuje narzędzie: edytuje plik, uruchamia komendę, szuka w kodzie</p>
+          </div>
+          <div class="card">
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">4. Obserwuj wynik</div>
+            <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Model analizuje rezultat: czy test przeszedł? Czy kod się kompiluje? Czy jest błąd?</p>
+          </div>
+          <div class="card">
+            <div style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">5. Iterować?</div>
+            <p style="font-size:var(--small-size);color:var(--gray-text);margin:0;">Jeśli cel nie osiągnięty = powrót do kroku 2 z nową wiedzą; jeśli tak = zakończ</p>
+          </div>
+        </div>
+      </div>
+
+      <blockquote class="reveal">
+        <strong>Kluczowa cecha:</strong> Claude Code sam decyduje, ile iteracji potrzebuje. Pojedyncze polecenie może wywołać dziesiątki cykli — np. przeczytanie 5 plików, edycja 3, uruchomienie testów, naprawa błędów, ponowne uruchomienie testów.
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s23">
+  <div class="sidebar"><span class="sidebar-label">Techniki promptowania</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Iteracyjne promptowanie — zacznij prosto, doprecyzowuj</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--body-size); color: var(--gray-text);">Nie musisz pisać idealnego promptu. Buduj kontekst krok po kroku:</p>
+      <div class="reveal" style="background: var(--black); border-radius: 6px; padding: clamp(0.7rem,1.5vw,1.4rem); font-family: 'Courier New', monospace; font-size: var(--small-size); color: #e0e0e0; line-height: 1.7;">
+        <div style="margin-bottom: 0.6em;"><span style="color: var(--yellow); font-weight: 700;">Krok 1:</span> <span style="color: #a8d8a8;">"Przejrzyj moduł auth i powiedz co można poprawić"</span></div>
+        <div style="padding-left: 2em; color: #9e9e9e; margin-bottom: 0.8em;">→ Claude daje listę sugestii</div>
+        <div style="margin-bottom: 0.6em;"><span style="color: var(--yellow); font-weight: 700;">Krok 2:</span> <span style="color: #a8d8a8;">"Skupmy się na punkcie 3 — token refresh. Jak to zrefaktorować?"</span></div>
+        <div style="padding-left: 2em; color: #9e9e9e; margin-bottom: 0.8em;">→ Claude proponuje podejście</div>
+        <div style="margin-bottom: 0.6em;"><span style="color: var(--yellow); font-weight: 700;">Krok 3:</span> <span style="color: #a8d8a8;">"OK, zaimplementuj. Napisz testy. Upewnij się, że stare przechodzą."</span></div>
+        <div style="padding-left: 2em; color: #9e9e9e;">→ Claude implementuje i testuje</div>
+      </div>
+      <div class="cards cols-1 reveal" style="margin-top: 0.3em;">
+        <div class="card featured" style="flex-direction: row; align-items: center; gap: 1em;">
+          <div style="font-size: clamp(1.4rem,2.5vw,2rem);">💬</div>
+          <p style="font-size: var(--body-size); color: var(--gray-text); margin: 0;">Claude ma <strong style="color: var(--black);">historię rozmowy</strong> w oknie kontekstowym — każdy prompt buduje na poprzednich.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s24">
+  <div class="sidebar"><span class="sidebar-label">Techniki promptowania</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Scope narrowing — zawężaj zakres</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="bad-good reveal">
+        <div class="bg-row">
+          <div class="bg-badge zle">ŹLE</div>
+          <div class="bg-text">"Znajdź i napraw bug z timeout"<br><span style="color: var(--gray-text); font-size: 0.9em;">→ Claude czyta 50 plików, kontekst pełny</span></div>
+        </div>
+        <div class="bg-row">
+          <div class="bg-badge dobrze">DOBRZE</div>
+          <div class="bg-text">"Znajdź i napraw bug z timeout w src/api/gateway/.<br>Nie dotykaj innych modułów."<br><span style="color: #2e7d32; font-size: 0.9em;">→ Claude czyta 5 plików, szybko trafia w sedno</span></div>
+        </div>
+      </div>
+      <div class="cards cols-1 reveal">
+        <div class="card featured" style="flex-direction: row; align-items: center; gap: 1em;">
+          <p style="font-size: var(--body-size); color: var(--gray-text); margin: 0;">Im bardziej zawęzisz zakres, tym <strong style="color: var(--black);">szybciej i taniej</strong> Claude znajdzie rozwiązanie.</p>
+        </div>
+      </div>
+    </div>
+    <div class="hands-on reveal">
+      <div class="ho-label">Hands-on</div>
+      <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0 0 0.3em;">Wypróbuj scope narrowing na plikach <code>prd.md</code> i <code>tech-stack.md</code>:</p>
+      <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>Krok 1 — szeroki prompt</strong> (obserwuj ile Claude czyta i jak ogólna jest odpowiedź):</p>
+      <p style="font-family: 'Courier New'; font-size: var(--label-size); background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 4px; padding: 0.3em 0.6em; margin: 0 0 0.4em;">"Przejrzyj projekt i powiedz co wiesz"</p>
+      <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>Krok 2 — zawężony prompt</strong> (obserwuj precyzję i szybkość):</p>
+      <p style="font-family: 'Courier New'; font-size: var(--label-size); background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 4px; padding: 0.3em 0.6em; margin: 0;">"Na podstawie prd.md wskaż tylko wymagania dotyczące [wybierz jedną funkcję]. Nie analizuj reszty."</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s25">
+  <div class="sidebar"><span class="sidebar-label">Techniki promptowania</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Self-Criticism (Samokrytyka)</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--body-size); color: var(--gray-text);">Poproś Claude o weryfikację własnej odpowiedzi przed zakończeniem:</p>
+      <div class="reveal" style="background: var(--black); border-radius: 6px; padding: clamp(0.7rem,1.5vw,1.4rem); font-family: 'Courier New', monospace; font-size: var(--small-size); color: #e0e0e0; line-height: 1.8;">
+        <div style="color: #9e9e9e; margin-bottom: 0.5em;">Zanim skończysz, zweryfikuj swoją odpowiedź:</div>
+        <div style="padding-left: 1em; color: #a8d8a8;">- Czy kod obsługuje edge case'y?</div>
+        <div style="padding-left: 1em; color: #a8d8a8;">- Czy nie ma race conditions?</div>
+        <div style="padding-left: 1em; color: #a8d8a8;">- Czy testy pokrywają wszystkie ścieżki?</div>
+        <div style="color: #9e9e9e; margin-top: 0.5em;">Jeśli znajdziesz błędy, napraw je.</div>
+      </div>
+      <blockquote class="reveal">
+        <strong>Anthropic:</strong> "Ask Claude to self-check. This catches errors reliably, especially for coding and math."
+      </blockquote>
+      <div class="cards cols-3 reveal">
+        <div class="card">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">Edge Cases</div>
+          <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Claude sprawdza nieoczywiste ścieżki i graniczne wartości</p>
+        </div>
+        <div class="card">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">Race Conditions</div>
+          <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Weryfikacja współbieżności i potencjalnych konfliktów</p>
+        </div>
+        <div class="card">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">Pokrycie testów</div>
+          <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Wszystkie ścieżki kodu mają odpowiednie testy</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s26">
+  <div class="sidebar"><span class="sidebar-label">Techniki promptowania</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Metoda sokratejska (Interview prompting)</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--body-size); color: var(--gray-text);">Zamiast dawać Claude pełne wymagania — poproś go o zadawanie pytań:</p>
+      <div class="reveal" style="background: var(--black); border-radius: 6px; padding: clamp(0.7rem,1.5vw,1.4rem); font-family: 'Courier New', monospace; font-size: var(--small-size); color: #a8d8a8; line-height: 1.7;">
+        Chcę zbudować [krótki opis]. Przeprowadź ze mną<br>
+        wywiad używając narzędzia AskUserQuestion.<br>
+        Pytaj o implementację, edge case'y, tradeoffs.<br>
+        Skup się na trudnych częściach, o których mógłbym<br>
+        nie pomyśleć. Potem napisz spec do SPEC.md.
+      </div>
+    </div>
+    <div class="hands-on reveal">
+      <div class="ho-label">Hands-on</div>
+      <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0 0 0.3em;">Wybierz jedną funkcję z <code>prd.md</code> i użyj metody sokratejskiej:</p>
+      <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>Krok 1 — zainicjuj wywiad:</strong></p>
+      <p style="font-family: 'Courier New'; font-size: var(--label-size); background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 4px; padding: 0.3em 0.6em; margin: 0 0 0.35em;">"Przeczytaj prd.md. Chcę zaimplementować [wybierz jedną funkcję]. Przeprowadź ze mną wywiad używając AskUserQuestion — pytaj o edge case'y i tradeoffs, o których mógłbym nie pomyśleć. Na końcu podsumuj ustalenia."</p>
+      <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>Obserwuj:</strong> Claude pyta zamiast zgadywać → odpowiedzi ujawniają luki w wymaganiach.</p>
+      <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>Krok 2 — porównaj:</strong></p>
+      <p style="font-family: 'Courier New'; font-size: var(--label-size); background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 4px; padding: 0.3em 0.6em; margin: 0;">"Zaimplementuj [tę samą funkcję] na podstawie prd.md" — i porównaj jakość wyniku.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s27">
+  <div class="sidebar"><span class="sidebar-label">Techniki promptowania</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Few-Shot Prompting</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--body-size); color: var(--gray-text);">Podaj 3-5 zróżnicowanych przykładów w tagach <code>&lt;examples&gt;</code>. Szczególnie przydatne w CLAUDE.md i skills:</p>
+      <div class="reveal" style="background: var(--black); border-radius: 6px; padding: clamp(0.7rem,1.5vw,1.4rem); font-family: 'Courier New', monospace; font-size: var(--small-size); color: #e0e0e0; line-height: 1.7;">
+        <span style="color: #7ec8e3;">&lt;examples&gt;</span><br>
+        &nbsp;&nbsp;<span style="color: #7ec8e3;">&lt;example&gt;</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9e9e9e;">Input: </span><span style="color: #a8d8a8;">"2024-01-15"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9e9e9e;">Output: </span><span style="color: #ffd700;">{"year": 2024, "month": 1, "day": 15, "valid": true}</span><br>
+        &nbsp;&nbsp;<span style="color: #7ec8e3;">&lt;/example&gt;</span><br>
+        &nbsp;&nbsp;<span style="color: #7ec8e3;">&lt;example&gt;</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9e9e9e;">Input: </span><span style="color: #a8d8a8;">"not-a-date"</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #9e9e9e;">Output: </span><span style="color: #ffd700;">{"raw": "not-a-date", "valid": false, "error": "Invalid format"}</span><br>
+        &nbsp;&nbsp;<span style="color: #7ec8e3;">&lt;/example&gt;</span><br>
+        <span style="color: #7ec8e3;">&lt;/examples&gt;</span>
+      </div>
+      <blockquote class="reveal">
+        <strong>Anthropic:</strong> "Make examples relevant, diverse, and structured. Wrap in <code>&lt;example&gt;</code> tags so Claude can distinguish them from instructions."
+      </blockquote>
+      <div class="cards cols-3 reveal">
+        <div class="card">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">Zróżnicowane</div>
+          <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Pokaż różne przypadki — sukces, błąd, edge case</p>
+        </div>
+        <div class="card">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">Ustrukturyzowane</div>
+          <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Spójny format Input/Output w każdym przykładzie</p>
+        </div>
+        <div class="card">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">3–5 przykładów</div>
+          <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Optimum: wystarczająco dużo by pokazać wzorzec</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s28">
+  <div class="sidebar"><span class="sidebar-label">Adaptive Thinking w Claude</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Adaptive Thinking — inteligentne rozumowanie</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--body-size); color: var(--gray-text);">Claude Opus 4.6 i Sonnet 4.6 wspierają <strong style="color: var(--black);">Adaptive Thinking</strong> — model dynamicznie decyduje kiedy i ile "myśleć" przed odpowiedzią. W przeciwieństwie do fixed-budget thinking, <strong style="color: var(--black);">automatycznie dopasowuje głębokość rozumowania</strong> do złożoności zadania.</p>
+      <div class="cards cols-1 reveal" style="margin-bottom: 0.3em;">
+        <div style="overflow-x: auto;">
+          <table class="tbl">
+            <thead>
+              <tr><th>Poziom</th><th>Zachowanie</th><th>Kiedy używać</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>low</strong></td><td>Minimalne myślenie, pomija proste problemy</td><td>Szybkie pytania, boilerplate, latency-sensitive</td></tr>
+              <tr><td><strong>medium</strong></td><td>Umiarkowane myślenie</td><td>Większość codziennych zadań — <strong>zalecany start</strong></td></tr>
+              <tr><td><strong>high</strong> (domyślny)</td><td>Głębokie rozumowanie</td><td>Złożony debugging, architektura, multi-step</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="cards cols-2 reveal">
+        <div class="card">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">Konfiguracja</div>
+          <div style="font-family: 'Courier New'; font-size: var(--label-size); color: var(--gray-text); line-height: 1.6;">
+            /model + strzałki → effort<br>
+            CLAUDE_CODE_EFFORT_LEVEL=low|medium|high<br>
+            "ultrathink" → wymusza high effort<br>
+            Option+T / Alt+T → włącz/wyłącz
+          </div>
+        </div>
+        <div class="card featured">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">Interleaved Thinking</div>
+          <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Claude myśli <strong>między wywołaniami narzędzi</strong> — analizuje wyniki pośrednich kroków. Kluczowe dla agentowych workflow.</p>
+        </div>
+      </div>
+      <blockquote class="reveal" style="margin-top: 0.2em;">
+        <strong>Ważne:</strong> Tokeny myślenia są naliczane (nawet jeśli Claude 4 pokazuje streszczenie myślenia, płaci się za pełne tokeny). Kontroluj koszty przez <code>max_tokens</code> i <code>effort</code>.
+      </blockquote>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s29">
+  <div class="sidebar"><span class="sidebar-label">Wybór modelu Claude</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Wybór modelu — Twój "workhorse"</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--body-size); color: var(--gray-text);">Claude Code daje Ci <strong style="color: var(--black);">wybór modelu</strong> — i to wpływa na jakość, szybkość i koszt.</p>
+      <div class="reveal" style="overflow-x: auto;">
+        <table class="tbl">
+          <thead>
+            <tr><th>Model</th><th>Koszt (input/output za 1M)</th><th>Charakter</th><th>Kiedy sięgać</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Haiku 4.5</strong></td><td>$1 / $5</td><td>Szybki stażysta</td><td>Boilerplate, CRUD, proste pytania</td></tr>
+            <tr><td><strong>Sonnet 4.6</strong></td><td>$3 / $15</td><td>Solidny mid</td><td>Codzienny coding, testy, review — 80% pracy</td></tr>
+            <tr><td><strong>Opus 4.6</strong></td><td>$5 / $25</td><td>Senior architect</td><td>Architektura, złożony debugging, multi-step</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <blockquote class="reveal">Tańszy model = szybszy, ale więcej iteracji poprawek. Droższy = wolniejszy, ale trafia za pierwszym razem. Szukasz <strong>swojego</strong> balansu.</blockquote>
+      <div class="cards cols-2 reveal">
+        <div class="card featured">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">opusplan — automatyczny hybrid</div>
+          <div style="background: var(--black); border-radius: 4px; padding: 0.5em 0.7em; font-family: 'Courier New'; font-size: var(--label-size); color: #e0e0e0; line-height: 1.6; margin-top: 0.3em;">
+            <span style="color: var(--yellow);">Plan Mode</span>   → <span style="color: #a8d8a8;">Opus</span>   (myśli, analizuje, planuje)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ Shift+Tab<br>
+            <span style="color: var(--yellow);">Normal Mode</span> → <span style="color: #a8d8a8;">Sonnet</span> (koduje, testuje, commituje)
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black);">Jak ustawić</div>
+          <div style="font-family: 'Courier New'; font-size: var(--label-size); color: var(--gray-text); line-height: 1.7; margin-top: 0.3em;">
+            claude --model opusplan<br>
+            <span style="color: #9e9e9e;"># przy starcie</span><br><br>
+            /model sonnet<br>
+            <span style="color: #9e9e9e;"># zmiana w sesji</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hands-on reveal">
+      <div class="ho-label">Hands-on</div>
+      <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Wpisz <code>/model</code> — zobacz jaki model jest aktywny. Przełącz na <code>opusplan</code>. Wejdź w Plan Mode (Shift+Tab) i zauważ zmianę modelu w statusie. Wróć do Normal Mode — model zmieni się automatycznie.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s30">
+  <div class="sidebar"><span class="sidebar-label">Kiedy CLAUDE.md nie wystarczy</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Kiedy CLAUDE.md nie wystarczy</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--body-size); color: var(--gray-text);">CLAUDE.md działa świetnie na start. Ale z czasem rośnie i pojawiają się problemy:</p>
+      <div class="cards cols-2 reveal">
+        <div>
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--small-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black); margin-bottom: 0.4em;">Sygnały że pora rozbić</div>
+          <div class="cards cols-1" style="gap: 0.3em;">
+            <div class="card danger" style="padding: 0.4em 0.7em;"><p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">CLAUDE.md <strong>puchnie</strong> — trudny w utrzymaniu, sprzeczne instrukcje</p></div>
+            <div class="card danger" style="padding: 0.4em 0.7em;"><p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;"><strong>Merge conflicty</strong> — kilka osób edytuje ten sam plik</p></div>
+            <div class="card danger" style="padding: 0.4em 0.7em;"><p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;"><strong>Mieszanie tematów</strong> — styl, testy, Spring, security w jednym pliku</p></div>
+            <div class="card danger" style="padding: 0.4em 0.7em;"><p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;"><strong>Chcesz wyłączyć regułę</strong> — musisz komentować zamiast usunąć plik</p></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--small-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black); margin-bottom: 0.4em;">Rozwiązanie: .claude/rules/</div>
+          <div style="background: var(--black); border-radius: 6px; padding: 0.6em 0.9em; font-family: 'Courier New'; font-size: var(--label-size); color: #e0e0e0; line-height: 1.7;">
+            .claude/<br>
+            &nbsp;&nbsp;<span style="color: var(--yellow);">CLAUDE.md</span>          <span style="color: #9e9e9e;">← zwięzły, najważniejsze</span><br>
+            &nbsp;&nbsp;rules/<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #a8d8a8;">code-style.md</span>     <span style="color: #9e9e9e;">← konwencje kodu</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #a8d8a8;">testing.md</span>        <span style="color: #9e9e9e;">← jak pisać testy</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #a8d8a8;">api-design.md</span>     <span style="color: #9e9e9e;">← konwencje REST</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #a8d8a8;">security.md</span>       <span style="color: #9e9e9e;">← Spring Security</span>
+          </div>
+          <div style="margin-top: 0.5em;">
+            <div style="font-family: 'Barlow'; font-weight: 700; font-size: var(--label-size); color: var(--black); margin-bottom: 0.2em;">Importy (@path):</div>
+            <div style="background: var(--black); border-radius: 6px; padding: 0.5em 0.8em; font-family: 'Courier New'; font-size: var(--label-size); color: #e0e0e0; line-height: 1.6;">
+              <span style="color: #9e9e9e;"># CLAUDE.md</span><br>
+              Architektura: <span style="color: #7ec8e3;">@docs/architecture.md</span><br>
+              Konwencje API: <span style="color: #7ec8e3;">@docs/api-conventions.md</span><br>
+              Konfiguracja: <span style="color: #7ec8e3;">@src/main/resources/application.yml</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <blockquote class="reveal" style="margin-top: 0.2em;"><strong>Zasada:</strong> Zacznij od CLAUDE.md. Przenoś do <code>rules/</code> dopiero gdy plik zaczyna puchnąć lub zespół ma konflikty w git.</blockquote>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s31">
+  <div class="sidebar"><span class="sidebar-label">Reguły warunkowe i pułapki</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Reguły warunkowe — ładuj tylko gdy potrzebne</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--small-size); color: var(--gray-text);">Domyślnie każdy plik w <code>rules/</code> ładuje się <strong>zawsze</strong> — zużywa kontekst nawet gdy niepotrzebny. Dodaj <code>paths:</code> aby reguła wchodziła tylko przy pracy z pasującymi plikami:</p>
+      <div class="cards cols-2 reveal" style="align-items: start;">
+        <div style="background: var(--black); border-radius: 6px; padding: 0.6em 0.9em; font-family: 'Courier New'; font-size: var(--label-size); color: #e0e0e0; line-height: 1.65;">
+          <span style="color: #9e9e9e;">---</span><br>
+          <span style="color: #7ec8e3;">paths:</span><br>
+          &nbsp;&nbsp;<span style="color: #a8d8a8;">- "src/main/java/**/controller/**/*.java"</span><br>
+          &nbsp;&nbsp;<span style="color: #a8d8a8;">- "src/main/java/**/rest/**/*.java"</span><br>
+          <span style="color: #9e9e9e;">---</span><br>
+          <span style="color: #9e9e9e;"># Reguły REST Controller</span><br>
+          - Używaj ResponseEntity&lt;&gt;<br>
+          - Waliduj przez @Valid + Bean Validation<br>
+          - Zwracaj błędy przez ProblemDetail<br>
+          - Dodawaj @Operation, @ApiResponse
+        </div>
+        <div>
+          <div style="overflow-x: auto; margin-bottom: 0.4em;">
+            <table class="tbl">
+              <thead><tr><th>Pułapka</th><th>Problem</th><th>Rozwiązanie</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Sprzeczne reguły</strong></td><td>Dwa pliki mówią różne rzeczy</td><td><code>/memory</code> pokaże co jest załadowane</td></tr>
+                <tr><td><strong>Za dużo plików bez paths:</strong></td><td>Tyle samo tokenów co jeden duży CLAUDE.md</td><td>Dodawaj <code>paths:</code> wszędzie gdzie możliwe</td></tr>
+                <tr><td><strong>Cicha nieabecność</strong></td><td>Reguła nie załadowała się bo Claude pracował innym katalogiem</td><td>Weryfikuj przez <code>/memory</code></td></tr>
+                <tr><td><strong>Duplikacja</strong></td><td>Ta sama instrukcja w CLAUDE.md i w rules/</td><td>CLAUDE.md = ogólne, rules = szczegółowe</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hands-on reveal">
+      <div class="ho-label">Hands-on</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em;">
+        <div>
+          <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>1.</strong> Stwórz <code>.claude/rules/java-header.md</code> (bez <code>paths:</code>):</p>
+          <p style="font-family: 'Courier New'; font-size: var(--label-size); background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 4px; padding: 0.3em 0.6em; margin: 0 0 0.3em;">Każda nowa klasa Java w src/main/ MUSI mieć:<br>// CircleK Workshop 2026<br>Klasy w src/test/ NIE powinny mieć tego komentarza.</p>
+          <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>2.</strong> Poproś Claude'a: <em>"Stwórz 3 klasy Java w src/main/java/demo/ i 2 klasy w src/test/java/demo/."</em></p>
+        </div>
+        <div>
+          <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>3.</strong> Sprawdź wynik: <code>src/main/</code> → powinny mieć komentarz, <code>src/test/</code> → NIE powinny</p>
+          <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>4.</strong> Wpisz <code>/memory</code> — sprawdź czy reguła jest załadowana</p>
+          <p style="font-size: var(--small-size); color: var(--black); margin: 0 0 0.2em;"><strong>Zadanie domowe:</strong> Dodaj frontmatter <code>paths: - "src/main/**/*.java"</code> i powtórz ćwiczenie. Czy reguła zadziałała przy tworzeniu? A przy edycji istniejących?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s32">
+  <div class="sidebar"><span class="sidebar-label">Plan Mode: workflow</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Plan Mode — bezpieczna analiza i planowanie</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size: var(--small-size); color: var(--gray-text);">Plan Mode to tryb, w którym Claude <strong style="color: var(--black);">czyta i analizuje</strong> kod, ale <strong style="color: var(--black);">nie może modyfikować</strong> plików ani uruchamiać komend.</p>
+      <div class="cards cols-2 reveal" style="align-items: start;">
+        <div>
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black); margin-bottom: 0.3em;">Kiedy używać?</div>
+          <div class="cards cols-1" style="gap: 0.25em;">
+            <div class="card success" style="padding: 0.35em 0.7em;"><p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;"><strong>Multi-step implementation</strong> — feature wymagający edycji wielu plików</p></div>
+            <div class="card success" style="padding: 0.35em 0.7em;"><p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;"><strong>Eksploracja kodu</strong> — rozumiej codebase zanim cokolwiek zmienisz</p></div>
+            <div class="card success" style="padding: 0.35em 0.7em;"><p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;"><strong>Interaktywne planowanie</strong> — iterujesz nad kierunkiem z Claude</p></div>
+            <div class="card success" style="padding: 0.35em 0.7em;"><p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;"><strong>Code review</strong> — analiza bez ryzyka przypadkowej modyfikacji</p></div>
+          </div>
+          <div style="margin-top: 0.5em; overflow-x: auto;">
+            <table class="tbl">
+              <thead><tr><th>Metoda</th><th>Komenda</th></tr></thead>
+              <tbody>
+                <tr><td>W sesji</td><td><strong>Shift+Tab</strong> (Normal → Accept Edits → Plan)</td></tr>
+                <tr><td>Start sesji</td><td><code>claude --permission-mode plan</code></td></tr>
+                <tr><td>Headless</td><td><code>claude --permission-mode plan -p "..."</code></td></tr>
+                <tr><td>Domyślny tryb</td><td><code>"defaultMode": "plan"</code> w settings.json</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black); margin-bottom: 0.3em;">Workflow: Explore → Plan → Implement → Commit</div>
+          <div style="background: var(--black); border-radius: 6px; padding: 0.6em 0.9em; font-family: 'Courier New'; font-size: var(--label-size); color: #e0e0e0; line-height: 1.65;">
+            <div style="color: var(--yellow); font-weight: 700; margin-bottom: 0.3em;">Krok 1: EXPLORE (Plan Mode)</div>
+            <div style="color: #a8d8a8; padding-left: 0.5em; margin-bottom: 0.5em;">&gt; Przeczytaj src/auth/ i wyjaśnij jak obsługujemy sesje.<br>&gt; Sprawdź jak zarządzamy zmiennymi środowiskowymi.</div>
+            <div style="color: var(--yellow); font-weight: 700; margin-bottom: 0.3em;">Krok 2: PLAN (Plan Mode)</div>
+            <div style="color: #a8d8a8; padding-left: 0.5em; margin-bottom: 0.3em;">&gt; Chcę dodać Google OAuth. Jakie pliki zmienić?<br>&gt; Stwórz plan.</div>
+            <div style="color: #9e9e9e; padding-left: 0.5em; margin-bottom: 0.5em;">→ Ctrl+G otwiera plan w edytorze</div>
+            <div style="color: var(--yellow); font-weight: 700; margin-bottom: 0.3em;">Krok 3: IMPLEMENT (Normal Mode — Shift+Tab)</div>
+            <div style="color: #a8d8a8; padding-left: 0.5em; margin-bottom: 0.5em;">&gt; Zaimplementuj flow OAuth. Napisz testy.<br>&gt; Uruchom suite i napraw błędy.</div>
+            <div style="color: var(--yellow); font-weight: 700; margin-bottom: 0.3em;">Krok 4: COMMIT (Normal Mode)</div>
+            <div style="color: #a8d8a8; padding-left: 0.5em;">&gt; Commituj z opisowym komunikatem i otwórz PR.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s33">
+  <div class="sidebar"><span class="sidebar-label">Plan Mode: konfiguracja i opusplan</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Plan Mode — konfiguracja i opusplan</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="cards cols-2 reveal" style="align-items: start;">
+        <div>
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--small-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black); margin-bottom: 0.4em;">Plan Mode + opusplan</div>
+          <div class="card featured" style="margin-bottom: 0.5em;">
+            <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0 0 0.4em;">Alias <code>opusplan</code> automatycznie używa <strong>Opus</strong> w Plan Mode i przełącza na <strong>Sonnet</strong> przy wyjściu:</p>
+            <div style="display: flex; gap: 0.4em; align-items: center;">
+              <div style="background: var(--yellow); border-radius: 4px; padding: 0.35em 0.7em; font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); color: var(--black);">Plan Mode</div>
+              <div style="font-size: var(--label-size); color: var(--gray-text);">→</div>
+              <div style="background: var(--black); border-radius: 4px; padding: 0.35em 0.7em; font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); color: var(--yellow);">Opus</div>
+              <div style="font-size: var(--label-size); color: var(--gray-text); font-size: 0.85em;">głębokie rozumowanie</div>
+            </div>
+            <div style="display: flex; gap: 0.4em; align-items: center; margin-top: 0.3em;">
+              <div style="background: var(--gray-mid); border-radius: 4px; padding: 0.35em 0.7em; font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); color: var(--black);">Normal Mode</div>
+              <div style="font-size: var(--label-size); color: var(--gray-text);">→</div>
+              <div style="background: var(--black); border-radius: 4px; padding: 0.35em 0.7em; font-family: 'Barlow'; font-weight: 800; font-size: var(--label-size); color: #a8d8a8;">Sonnet</div>
+              <div style="font-size: var(--label-size); color: var(--gray-text); font-size: 0.85em;">szybka implementacja</div>
+            </div>
+          </div>
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--small-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black); margin-bottom: 0.4em;">Ctrl+G — edycja planu w edytorze</div>
+          <div class="card">
+            <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Po wygenerowaniu planu naciśnij <strong>Ctrl+G</strong> aby otworzyć go w domyślnym edytorze tekstu. Możesz modyfikować kroki, dodawać/usuwać wymagania i ustawiać priorytety. Po zapisaniu i zamknięciu Claude kontynuuje z Twoimi zmianami.</p>
+          </div>
+        </div>
+        <div>
+          <div style="font-family: 'Barlow'; font-weight: 800; font-size: var(--small-size); text-transform: uppercase; letter-spacing: 0.08em; color: var(--black); margin-bottom: 0.4em;">Kiedy pominąć planowanie?</div>
+          <blockquote style="margin: 0 0 0.5em;">
+            <strong>Kiedy pominąć planowanie:</strong> Jeśli potrafisz opisać diff jednym zdaniem — np. poprawka literówki, dodanie logu, rename zmiennej — po prostu poproś Claude o zrobienie tego. Plan Mode ma sens przy niepewności co do podejścia lub przy zmianach w wielu plikach.
+          </blockquote>
+          <div class="cards cols-1" style="gap: 0.3em;">
+            <div class="card success" style="padding: 0.4em 0.7em; flex-direction: row; align-items: center; gap: 0.6em;">
+              <div style="font-family: 'Barlow'; font-weight: 900; font-size: var(--label-size); color: #2e7d32; min-width: 3em;">KIEDY</div>
+              <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Niepewność co do podejścia, zmiany w wielu plikach, nowy codebase</p>
+            </div>
+            <div class="card danger" style="padding: 0.4em 0.7em; flex-direction: row; align-items: center; gap: 0.6em;">
+              <div style="font-family: 'Barlow'; font-weight: 900; font-size: var(--label-size); color: var(--red); min-width: 3em;">POMIŃ</div>
+              <p style="font-size: var(--small-size); color: var(--gray-text); margin: 0;">Literówka, log, rename — gdy diff to jedno zdanie</p>
+            </div>
+          </div>
+          <div style="margin-top: 0.5em; background: var(--black); border-radius: 6px; padding: 0.5em 0.8em; font-family: 'Courier New'; font-size: var(--label-size); color: #e0e0e0; line-height: 1.6;">
+            <span style="color: #9e9e9e;"># Domyślny Plan Mode w projekcie</span><br>
+            <span style="color: #7ec8e3;">.claude/settings.json:</span><br>
+            <span style="color: #ffd700;">{"defaultMode": "plan"}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s34">
+  <div class="sidebar"><span class="sidebar-label">Ćwiczenie 1: Stworzenie projektu</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Ćwiczenie 1: Stworzenie projektu Java</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:0.3em;"><strong>Cel:</strong> Używając Claude Code, wygeneruj kompletny projekt Java na podstawie specyfikacji technicznej.</p>
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card" style="grid-column:1/2;">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja</span>
+          <div class="steps" style="margin-top:0.3em;">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Uruchomienie Claude Code</strong> w sklonowanym repozytorium</div></div>
+            <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Inicjalizacja projektu</strong> na podstawie specyfikacji w pliku <code>tech-stack.md</code> — <strong>Plan Mode</strong></div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Wykorzystaj prompt:</strong></div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.55em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.35em;line-height:1.45;white-space:pre-wrap;">Zgodnie ze specyfikacją z @tech-stack.md oraz @prd.md
+stwórz projekt Spring Boot o nazwie `cinemabooking`.
+Nie implementuj na razie żadnej logiki ani domeny
+biznesowej - tym zajmiemy się później.
+Projekt powinien się poprawnie uruchamiać, a możemy
+to sprawdzić poprzez stworzenie pustego testu
+integracyjnego, który sprawdza czy context springa
+uruchamia się poprawnie.</pre>
+          <div class="steps" style="margin-top:0.3em;">
+            <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Obserwuj</strong> jak Claude czyta specyfikację, generuje pliki i weryfikuje build</div></div>
+            <div class="step"><div class="step-n">5</div><div class="step-t"><strong>Konfiguracja</strong> CLAUDE.md z wykorzystaniem <code>/init</code></div></div>
+          </div>
+        </div>
+        <div class="card featured" style="grid-column:2/3;">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Na co zwrócić uwagę</span>
+          <ul style="margin:0.4em 0 0 1.1em;padding:0;font-size:var(--small-size);color:var(--gray-text);line-height:1.6;">
+            <li>Jakie narzędzia zostały użyte (<code>Read</code>, <code>Write</code>, <code>Bash</code>…)?</li>
+            <li>Czy Claude sam uruchomił build i naprawił ewentualne błędy?</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s35">
+  <div class="sidebar"><span class="sidebar-label">Ćwiczenie 2: Setup IDE</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Ćwiczenie 2: Uruchomienie projektu w IntelliJ/VSCode</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:0.3em;"><strong>Cel:</strong> Połącz Claude Code z IDE — to Twoje standardowe środowisko pracy na co dzień.</p>
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja</span>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Otwórz IntelliJ IDEA</strong> → File → Open → wybierz katalog projektu</div></div>
+            <div class="step"><div class="step-n">2</div><div class="step-t">Poczekaj aż IntelliJ zaindeksuje projekt i rozwiąże zależności</div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t">W marketplace wyszukaj pluginu <strong>Claude Code [Beta]</strong></div></div>
+            <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Otwórz terminal w IntelliJ</strong></div></div>
+            <div class="step"><div class="step-n">5</div><div class="step-t"><strong>Uruchom Claude Code</strong> w terminalu IntelliJ: <code>claude</code></div></div>
+            <div class="step"><div class="step-n">6</div><div class="step-t"><strong>Zweryfikuj projekt:</strong></div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Przejrzyj strukturę projektu. Sprawdź czy wszystko
+jest poprawnie skonfigurowane. Uruchom testy
+jeśli istnieją.</pre>
+        </div>
+        <div class="card featured">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Dlaczego terminal w IDE?</span>
+          <ul style="margin:0.4em 0 0 1.1em;padding:0;font-size:var(--small-size);color:var(--gray-text);line-height:1.7;">
+            <li>Claude Code działa w tym samym katalogu co IDE — widzisz zmiany w plikach na żywo</li>
+            <li>Możesz równolegle przeglądać kod w edytorze i rozmawiać z Claude</li>
+            <li>Git integration — IDE pokazuje diff zmian wprowadzonych przez Claude</li>
+            <li style="color:var(--black);font-weight:600;">To jest rekomendowany sposób pracy — nie musisz opuszczać IDE</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s36">
+  <div class="sidebar"><span class="sidebar-label">Ćwiczenie 3: Mapa sali — kontrakt</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Ćwiczenie 3: Mapa sali — kontrakt</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:0.3em;"><strong>Cel:</strong> Zaimplementuj kontrakt wymagany przez pierwszy UC — wizualizacja sali kinowej wraz z miejscami.</p>
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card" style="grid-column:1/3;">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.4rem,0.9vw,0.85rem);margin-top:0.35em;">
+            <div>
+              <div class="steps">
+                <div class="step"><div class="step-n">1</div><div class="step-t">Przełącz Claude w tryb <strong>Plan Mode</strong> oraz wybierz model <strong>Opus</strong>.</div></div>
+                <div class="step"><div class="step-n">2</div><div class="step-t">Rozpocznijmy od kontraktu OpenAPI dla mapy sali:</div></div>
+              </div>
+              <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Na podstawie US-003 z @prd.md zdefiniuj kontrakt
+API w pliku @openapi.yaml.
+Zdefiniuj schemat odpowiedzi, kody HTTP i
+przykładowe odpowiedzi.
+Nie implementuj jeszcze niczego — to jest
+kontrakt, nie implementacja. Zaczynamy od tego,
+co system mówi światu.</pre>
+              <div class="steps" style="margin-top:0.35em;">
+                <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Przejrzyj plan</strong> — edytuj go w miarę potrzeb.</div></div>
+                <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Jeśli plan spełnia</strong> postawione założenia — kontynuuj z implementacją.</div></div>
+              </div>
+            </div>
+            <div>
+              <div class="steps">
+                <div class="step"><div class="step-n">5</div><div class="step-t">Stwórz customową komendę <code>/commit</code>:</div></div>
+              </div>
+              <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Stwórz custom command dla Claude Code,
+który: analizuje ostatnie zmiany w
+repozytorium, generuje zwięzłą wiadomość
+commita w języku angielskim zgodną z
+Conventional Commits, i wykonuje commit.
+Komenda powinna być dostępna jako `/commit`.</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s37">
+  <div class="sidebar"><span class="sidebar-label">Ćwiczenie 3 c.d.: Mapa sali — BE</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Ćwiczenie 3 c.d.: Implementacja backendu mapy sali</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:0.3em;"><strong>Cel:</strong> Zaimplementuj pierwszy UC — wizualizację sali kinowej. Przy okazji stwórz pierwszy skill projektowy do pilnowania standardów testów.</p>
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja</span>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Stwórz skill testowy</strong> na podstawie <code>testing-rules.md</code>:</div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Na podstawie pliku `testing-rules.md`
+zdefiniuj projektowy skill Claude Code,
+który jest automatycznie stosowany podczas
+pisania testów. Skill powinien wymuszać
+zasady zdefiniowane we wspomnianym pliku.</pre>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Przełącz się do Plan Mode</strong> (Shift+Tab) + model <strong>Opus</strong> — zacznij od planu implementacji mapy sali</div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Zacznij od czerwonego testu</strong> — schemat: czerwony test → implementacja → zielony test</div></div>
+            <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Iteruj nad planem</strong> — doprecyzuj go i poproś o kolejną wersję jeśli potrzeba</div></div>
+            <div class="step"><div class="step-n">5</div><div class="step-t"><strong>Warunek akceptacyjny:</strong> <code>mvn clean install</code> przechodzi bez błędów</div></div>
+          </div>
+        </div>
+        <div class="card featured">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Na co zwrócić uwagę</span>
+          <ul style="margin:0.4em 0 0 1.1em;padding:0;font-size:var(--small-size);color:var(--gray-text);line-height:1.7;">
+            <li><strong>Zweryfikuj plan Claude'a</strong> zanim przejdzie do kodu — Plan Mode jest po to, żeby złapać błędy wcześnie</li>
+            <li><strong>Testuj zachowanie, nie implementację</strong> — test powinien mówić <em>co</em> system robi, nie <em>jak</em></li>
+          </ul>
+          <div style="margin-top:0.6em;background:var(--yellow-light);border-left:3px solid var(--yellow-dark);border-radius:0 4px 4px 0;padding:0.45em 0.7em;">
+            <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;color:var(--yellow-dark);">Schemat TDD</span>
+            <div style="display:flex;align-items:center;gap:0.5em;margin-top:0.3em;font-size:var(--small-size);font-weight:600;">
+              <span style="background:var(--red);color:white;padding:0.15em 0.5em;border-radius:3px;">Czerwony test</span>
+              <span style="color:var(--gray-text);">→</span>
+              <span style="background:var(--gray-mid);color:var(--black);padding:0.15em 0.5em;border-radius:3px;">Implementacja</span>
+              <span style="color:var(--gray-text);">→</span>
+              <span style="background:var(--green);color:white;padding:0.15em 0.5em;border-radius:3px;">Zielony test</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s38">
+  <div class="sidebar"><span class="sidebar-label">Ćwiczenie 3 c.d.: Dane wsadowe + UC-1 Frontend</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Ćwiczenie 3 c.d.: Dane testowe, frontend i testy UC-1</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:0.3em;"><strong>Cel:</strong> Przygotuj dane wsadowe (seed data), zbuduj wizualizację mapy sali i napisz testy jednostkowe dla pierwszego feature'a.</p>
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja — kroki 1–2</span>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Meta-prompting</strong> — poproś Claude'a, żeby sam napisał prompt do danych testowych:</div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Napisz mi prompt, który poda Claude'owi
+szczegółowe instrukcje do wygenerowania
+realistycznych danych wsadowych (seed data)
+dla sali kinowej — rzędy, miejsca, typy
+miejsc. Nie generuj jeszcze danych — chcę
+najpierw zobaczyć prompt.</pre>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Zaktualizuj CLAUDE.md</strong> o informacje o predefiniowanych danych</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja — kroki 3–4</span>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Wizualizacja mapy sali</strong> — Plan Mode + Opus:</div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Na podstawie seed data i kontraktu z
+@openapi.yaml zaimplementuj frontend
+wizualizacji mapy sali kinowej. Mapa powinna
+pokazywać rzędy, numery miejsc i ich
+dostępność. Pamiętaj o wymaganiach z
+@tech-stack.md dotyczących technologii
+frontendowej.</pre>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Wygeneruj testy jednostkowe</strong> — happy path i edge case'y</div></div>
+          </div>
+        </div>
+        <div class="card featured" style="grid-column:1/3;">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Na co zwrócić uwagę</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5em;margin-top:0.3em;">
+            <div style="font-size:var(--small-size);color:var(--gray-text);">Meta-prompting: Claude pisze prompt za Ciebie — oceń jakość wygenerowanego prompta i porównaj z tym, co sam byś napisał</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);">CLAUDE.md rośnie z projektem — dodawaj to, co przyda się w kolejnych krokach</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s39">
+  <div class="sidebar"><span class="sidebar-label">Ćwiczenie 4: Kontrakt + backend rezerwacji</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Ćwiczenie 4: Kontrakt i backend rezerwacji</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:0.3em;"><strong>Cel:</strong> Rozszerz kontrakt API o flow rezerwacji miejsc, a następnie zaimplementuj backend w trybie TDD — analogicznie do Ćwiczenia 3.</p>
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja</span>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Rozszerz kontrakt API</strong> — Plan Mode + Opus:</div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Na podstawie US dotyczącego rezerwacji z
+@prd.md rozszerz @openapi.yaml o endpointy
+rezerwacji miejsc. Uwzględnij cykl życia
+rezerwacji: PENDING → CONFIRMED / EXPIRED /
+CANCELLED. Zdefiniuj schematy request/response,
+kody HTTP i przykłady.</pre>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Przejrzyj plan kontraktu</strong> — upewnij się, że pokrywa wszystkie przejścia statusów i edge case'y</div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Zaimplementuj backend rezerwacji</strong> — Plan Mode + Opus → Normal Mode; schemat: czerwony test → implementacja → zielony test</div></div>
+            <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Warunek akceptacyjny:</strong> <code>mvn clean install</code> przechodzi bez błędów</div></div>
+          </div>
+        </div>
+        <div class="card featured">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Na co zwrócić uwagę</span>
+          <ul style="margin:0.4em 0 0 1.1em;padding:0;font-size:var(--small-size);color:var(--gray-text);line-height:1.7;">
+            <li>To <strong>najbardziej złożony blok warsztatów</strong> — Plan Mode jest tu szczególnie ważny, nie pomijaj weryfikacji planu przed implementacją</li>
+            <li>Pełny cykl życia rezerwacji — upewnij się, że testy pokrywają każde przejście</li>
+          </ul>
+          <div style="margin-top:0.6em;background:var(--yellow-light);border-left:3px solid var(--yellow-dark);border-radius:0 4px 4px 0;padding:0.45em 0.7em;">
+            <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;color:var(--yellow-dark);">Cykl życia rezerwacji</span>
+            <div style="display:flex;align-items:center;gap:0.4em;margin-top:0.4em;flex-wrap:wrap;">
+              <span style="background:var(--gray-mid);color:var(--black);padding:0.2em 0.6em;border-radius:3px;font-size:var(--small-size);font-weight:700;">PENDING</span>
+              <span style="color:var(--gray-text);font-size:var(--small-size);">→</span>
+              <span style="background:var(--green);color:white;padding:0.2em 0.6em;border-radius:3px;font-size:var(--small-size);font-weight:700;">CONFIRMED</span>
+              <span style="color:var(--gray-text);font-size:var(--small-size);">/</span>
+              <span style="background:var(--red);color:white;padding:0.2em 0.6em;border-radius:3px;font-size:var(--small-size);font-weight:700;">EXPIRED</span>
+              <span style="color:var(--gray-text);font-size:var(--small-size);">/</span>
+              <span style="background:#888;color:white;padding:0.2em 0.6em;border-radius:3px;font-size:var(--small-size);font-weight:700;">CANCELLED</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s40">
+  <div class="sidebar"><span class="sidebar-label">Ćwiczenie 4 c.d.: Frontend + testy rezerwacji</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Ćwiczenie 4 c.d.: Frontend i testy rezerwacji</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:0.3em;"><strong>Cel:</strong> Zbuduj interfejs rezerwacji na bazie gotowego backendu i dopisz testy jednostkowe pokrywające logikę biznesową.</p>
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja</span>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Zbuduj frontend rezerwacji</strong>:</div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Na podstawie kontraktu z @openapi.yaml
+rozszerz frontend o flow rezerwacji.
+Użytkownik powinien móc: wybrać miejsca na
+mapie sali, zatwierdzić rezerwację i zobaczyć
+potwierdzenie z numerem rezerwacji.
+Wykorzystaj istniejący komponent mapy sali.</pre>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Napisz testy jednostkowe</strong> — happy path, edge case'y (np. podwójna rezerwacja) i przejścia statusów</div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Zweryfikuj całość</strong> — <code>mvn clean install</code> + sprawdź flow w przeglądarce</div></div>
+          </div>
+        </div>
+        <div class="card featured">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Na co zwrócić uwagę</span>
+          <ul style="margin:0.4em 0 0 1.1em;padding:0;font-size:var(--small-size);color:var(--gray-text);line-height:1.7;">
+            <li>Frontend budujemy na gotowym backendzie — jeśli coś nie działa, sprawdź najpierw czy kontrakt API jest spójny z implementacją</li>
+            <li>Testy powinny pokrywać <strong>logikę biznesową</strong>, nie szczegóły implementacji — testuj <em>co</em> system robi, nie <em>jak</em></li>
+          </ul>
+          <div style="margin-top:0.6em;">
+            <table class="tbl">
+              <thead><tr><th>Co testować</th><th>Przykład</th></tr></thead>
+              <tbody>
+                <tr><td>Happy path</td><td>Rezerwacja wolnego miejsca</td></tr>
+                <tr><td>Edge case</td><td>Podwójna rezerwacja</td></tr>
+                <tr><td>Przejście statusu</td><td>PENDING → CONFIRMED</td></tr>
+                <tr><td>Przejście statusu</td><td>PENDING → EXPIRED</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s41">
+  <div class="sidebar"><span class="sidebar-label">Ćwiczenie 5: Jakość i finalizacja</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Ćwiczenie 5: Testy, weryfikacja i code review</h2>
+    </div>
+    <div class="slide-body stagger">
+      <p class="reveal" style="font-size:var(--body-size);color:var(--gray-text);margin-bottom:0.3em;"><strong>Cel:</strong> Zamknij projekt — pokryj edge case'y testami integracyjnymi, zweryfikuj działanie i przeprowadź code review z Claude'em.</p>
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Instrukcja</span>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Napisz testy integracyjne</strong> dla edge case'ów:</div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Przejrzyj istniejące testy i zidentyfikuj
+brakujące scenariusze. Napisz testy
+integracyjne dla edge case'ów: współbieżna
+rezerwacja tego samego miejsca, rezerwacja
+po wygaśnięciu, nieprawidłowe dane wejściowe.
+Uruchom wszystkie testy i napraw błędy.</pre>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">2</div><div class="step-t"><code>mvn clean install</code> musi zakończyć się sukcesem</div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Smoke test w przeglądarce</strong> — pełny flow: wybór seansu → miejsca → rezerwacja → potwierdzenie</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Code Review z Claude'em</span>
+          <div class="steps" style="margin-top:0.35em;">
+            <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Przeprowadź code review</strong>:</div></div>
+          </div>
+          <pre style="background:var(--black);color:#f8f8f2;font-size:var(--small-size);padding:0.5em 0.8em;border-radius:4px;overflow-x:auto;margin-top:0.3em;line-height:1.45;white-space:pre-wrap;">Przeprowadź code review całego projektu.
+Zgrupuj uwagi według priorytetów: critical,
+major, minor. Dla każdej uwagi podaj plik,
+linię i uzasadnienie.</pre>
+          <table class="tbl" style="margin-top:0.4em;">
+            <thead><tr><th>Priorytet</th><th>Znaczenie</th></tr></thead>
+            <tbody>
+              <tr><td><span style="color:var(--red);font-weight:700;">critical</span></td><td>Blokuje działanie / bezpieczeństwo</td></tr>
+              <tr><td><span style="color:#E65100;font-weight:700;">major</span></td><td>Istotne problemy jakości</td></tr>
+              <tr><td><span style="color:var(--green);font-weight:700;">minor</span></td><td>Styl, drobne usprawnienia</td></tr>
+            </tbody>
+          </table>
+          <blockquote style="margin-top:0.4em;">Code review Claude'a nie jest idealny — traktuj go jako punkt wyjścia do dyskusji z grupą, nie jako wyrocznię</blockquote>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s42">
+  <div class="sidebar"><span class="sidebar-label">Typowe błędy</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Typowe błędy i jak ich unikać</h2>
+    </div>
+    <div class="slide-body stagger">
+      <div class="cards cols-2 reveal" style="flex:1;align-content:start;">
+        <div class="card danger">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">1. "Sesja-śmietnisko" (Kitchen Sink Session)</span>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0.2em 0;">Mieszanie niepowiązanych zadań w jednej sesji. Kontekst pełny śmieci.</p>
+          <p style="font-size:var(--small-size);color:var(--black);margin:0;"><strong>Rozwiązanie:</strong> <code>/clear</code> między zadaniami.</p>
+        </div>
+        <div class="card danger">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">2. Niekończące się korekty</span>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0.2em 0;">Claude robi błąd, poprawiasz, dalej błąd… Kontekst zatruwany nieudanymi próbami.</p>
+          <p style="font-size:var(--small-size);color:var(--black);margin:0;"><strong>Rozwiązanie:</strong> Po 2 nieudanych korektach — <code>/clear</code> + lepszy prompt.</p>
+        </div>
+        <div class="card danger">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">3. Przeładowany CLAUDE.md</span>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0.2em 0;">Za długi plik = Claude może ignorować część instrukcji.</p>
+          <p style="font-size:var(--small-size);color:var(--black);margin:0;"><strong>Rozwiązanie:</strong> Przenieś szczegółowe reguły do <code>.claude/rules/</code>.</p>
+        </div>
+        <div class="card danger">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">4. Brak weryfikacji</span>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0.2em 0;">Claude generuje kod, który wygląda ok, ale nie działa na edge case'ach.</p>
+          <p style="font-size:var(--small-size);color:var(--black);margin:0;"><strong>Rozwiązanie:</strong> Zawsze dostarczaj testy, skrypty walidacyjne, screenshoty.</p>
+        </div>
+        <div class="card danger" style="grid-column:1/3;">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--small-size);color:var(--black);">5. Nieskończona eksploracja</span>
+          <p style="font-size:var(--small-size);color:var(--gray-text);margin:0.2em 0;">"Zbadaj to" bez zakresu = Claude czyta setki plików, kontekst pełny.</p>
+          <p style="font-size:var(--small-size);color:var(--black);margin:0;"><strong>Rozwiązanie:</strong> Zawężaj zakres lub używaj subagentów.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide" id="s43">
+  <div class="sidebar"><span class="sidebar-label">Podsumowanie</span></div>
+  <div class="main">
+    <div class="slide-header">
+      <div class="accent-bar"></div>
+      <h2 class="slide-title reveal-left">Podsumowanie</h2>
+    </div>
+    <div class="slide-body stagger" style="gap:clamp(0.3rem,0.7vw,0.7rem);">
+      <div class="cards cols-2 reveal" style="flex:none;">
+        <div class="card" style="grid-column:1/3;">
+          <span style="font-family:'Barlow';font-weight:800;font-size:var(--label-size);text-transform:uppercase;letter-spacing:0.08em;color:var(--black);">Najważniejsze punkty</span>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35em 1em;margin-top:0.3em;">
+            <div style="font-size:var(--small-size);color:var(--gray-text);"><span style="background:var(--yellow);color:var(--black);font-family:'Barlow';font-weight:900;padding:0.05em 0.35em;border-radius:2px;margin-right:0.35em;font-size:var(--label-size);">1</span><strong>Claude Code działa agentowo</strong> — plan → działaj → obserwuj → powtórz</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);"><span style="background:var(--yellow);color:var(--black);font-family:'Barlow';font-weight:900;padding:0.05em 0.35em;border-radius:2px;margin-right:0.35em;font-size:var(--label-size);">2</span><strong>Kontekst to kluczowy zasób</strong> — zarządzaj aktywnie (<code>/clear</code>, <code>/compact</code>, subagenty)</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);"><span style="background:var(--yellow);color:var(--black);font-family:'Barlow';font-weight:900;padding:0.05em 0.35em;border-radius:2px;margin-right:0.35em;font-size:var(--label-size);">3</span><strong>CLAUDE.md = trwała pamięć</strong> — konfiguruj raz; użyj <code>.claude/rules/</code> do organizacji</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);"><span style="background:var(--yellow);color:var(--black);font-family:'Barlow';font-weight:900;padding:0.05em 0.35em;border-radius:2px;margin-right:0.35em;font-size:var(--label-size);">4</span><strong>Prompt engineering ma znaczenie</strong> — klarowność, kontekst, przykłady, tagi XML, chain of thought</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);"><span style="background:var(--yellow);color:var(--black);font-family:'Barlow';font-weight:900;padding:0.05em 0.35em;border-radius:2px;margin-right:0.35em;font-size:var(--label-size);">5</span><strong>Adaptive Thinking + opusplan</strong> — Opus planuje, Sonnet implementuje</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);"><span style="background:var(--yellow);color:var(--black);font-family:'Barlow';font-weight:900;padding:0.05em 0.35em;border-radius:2px;margin-right:0.35em;font-size:var(--label-size);">6</span><strong>Plan Mode na początku</strong> — Shift+Tab + Ctrl+G = bezpieczna eksploracja</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);"><span style="background:var(--yellow);color:var(--black);font-family:'Barlow';font-weight:900;padding:0.05em 0.35em;border-radius:2px;margin-right:0.35em;font-size:var(--label-size);">7</span><strong>Weryfikacja jest obowiązkowa</strong> — testy, linting, review — nie ufaj ślepo</div>
+            <div style="font-size:var(--small-size);color:var(--gray-text);"><span style="background:var(--yellow);color:var(--black);font-family:'Barlow';font-weight:900;padding:0.05em 0.35em;border-radius:2px;margin-right:0.35em;font-size:var(--label-size);">8</span><strong>Koryguj wcześnie</strong> — Esc, /rewind, /clear zamiast ciągnąć nieudaną sesję</div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal" style="flex:1;overflow:auto;">
+        <table class="tbl" style="width:100%;">
+          <thead>
+            <tr><th>Koncept</th><th>Gdzie w praktyce</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Plan Mode + Opus</strong></td><td>Kontrakt API, implementacja BE, frontend (ćw. 2–4)</td></tr>
+            <tr><td><strong>CLAUDE.md</strong></td><td>Inicjalizacja, aktualizacja o seed data (ćw. 1, 3)</td></tr>
+            <tr><td><strong>Custom Commands</strong></td><td><code>/commit</code> (ćw. 1)</td></tr>
+            <tr><td><strong>Skills</strong></td><td>Skill testowy (ćw. 2)</td></tr>
+            <tr><td><strong>Meta-prompting</strong></td><td>Generowanie prompta do seed danych (ćw. 3)</td></tr>
+            <tr><td><strong>Test-first</strong></td><td>Testy akceptacyjne UC-1 i UC-2 (ćw. 2, 4)</td></tr>
+            <tr><td><strong>Spec-first</strong></td><td>OpenAPI jako źródło prawdy (ćw. 2, 4)</td></tr>
+            <tr><td><strong>Code review</strong></td><td>Analiza istniejącego kodu (ćw. 5)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="hands-on reveal" style="flex-shrink:0;">
+        <div class="ho-label">Następne kroki</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4em;">
+          <div style="font-size:var(--small-size);color:var(--gray-text);">Zainstaluj Claude Code i skonfiguruj CLAUDE.md w swoim projekcie</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">Eksperymentuj z Plan Mode i trybem <code>opusplan</code> przed złożonymi zmianami</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">Stosuj techniki promptowania: chain of thought, self-criticism, few-shot</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">Dobierz model i effort level do złożoności zadania</div>
+          <div style="font-size:var(--small-size);color:var(--gray-text);">Połącz zewnętrzne narzędzia przez MCP</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="slide end-slide" id="s44">
+  <div class="sidebar"><span class="sidebar-label">Pytania i kontakt</span></div>
+  <div class="main" style="justify-content:center;position:relative;overflow:hidden;">
+    <div class="end-deco">?</div>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;gap:clamp(1rem,2.5vh,2.5rem);padding:var(--slide-padding);">
+      <div>
+        <div class="accent-bar" style="width:clamp(50px,7vw,100px);"></div>
+        <h1 style="font-family:'Barlow';font-weight:900;font-size:var(--title-size);color:var(--black);margin:0;line-height:1.1;">Pytania?</h1>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.5em;">
+        <div class="contact-names">Jakub Walczak &nbsp;|&nbsp; Karol Kasprzak &nbsp;|&nbsp; Przemysław Świda &nbsp;|&nbsp; Sylwia Rapacz</div>
+        <div style="font-family:'Barlow';font-weight:700;font-size:var(--h3-size);color:var(--yellow-dark);letter-spacing:0.05em;">Boldare</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.35em;">
+        <div style="font-size:var(--body-size);color:var(--gray-text);">Dokumentacja: <a href="https://code.claude.com/docs" style="color:var(--black);font-weight:600;text-decoration:none;">https://code.claude.com/docs</a></div>
+        <div style="font-size:var(--body-size);color:var(--gray-text);">Claude Code: <a href="https://code.claude.com" style="color:var(--black);font-weight:600;text-decoration:none;">https://code.claude.com</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- NAVIGATION UI -->
+<div id="nav-ui">
+  <div id="progress-bar"><div id="progress"></div></div>
+  <div id="nav-bar">
+    <span id="counter">01 / 11</span>
+    <div id="nav-dots"></div>
+  </div>
+</div>
+
+<script>
+class SlidePresentation {
+  constructor() {
+    this.slides = Array.from(document.querySelectorAll('.slide'));
+    this.current = 0;
+    this.scrollCooldown = false;
+    this.setupObserver();
+    this.setupKeyboard();
+    this.setupScroll();
+    this.setupTouch();
+    this.setupDots();
+    this.goTo(0);
+  }
+  setupObserver() {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          const idx = this.slides.indexOf(e.target);
+          if (idx !== -1) this.updateUI(idx);
+        }
+      });
+    }, { threshold: 0.5 });
+    this.slides.forEach(s => obs.observe(s));
+  }
+  setupKeyboard() {
+    document.addEventListener('keydown', e => {
+      if (['ArrowDown','ArrowRight','Space','PageDown'].includes(e.code)) { e.preventDefault(); this.goTo(this.current + 1); }
+      if (['ArrowUp','ArrowLeft','PageUp'].includes(e.code)) { e.preventDefault(); this.goTo(this.current - 1); }
+      if (e.code === 'Home') { e.preventDefault(); this.goTo(0); }
+      if (e.code === 'End') { e.preventDefault(); this.goTo(this.slides.length - 1); }
+    });
+  }
+  setupScroll() {
+    document.addEventListener('wheel', e => {
+      if (this.scrollCooldown) return;
+      this.scrollCooldown = true;
+      if (e.deltaY > 0) this.goTo(this.current + 1);
+      else this.goTo(this.current - 1);
+      setTimeout(() => this.scrollCooldown = false, 700);
+    }, { passive: true });
+  }
+  setupTouch() {
+    let startY = 0;
+    document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const delta = startY - e.changedTouches[0].clientY;
+      if (Math.abs(delta) > 50) delta > 0 ? this.goTo(this.current + 1) : this.goTo(this.current - 1);
+    });
+  }
+  setupDots() {
+    const dots = document.getElementById('nav-dots');
+    if (!dots) return;
+    this.slides.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      d.addEventListener('click', () => this.goTo(i));
+      dots.appendChild(d);
+    });
+  }
+  goTo(idx) {
+    if (idx < 0 || idx >= this.slides.length) return;
+    this.current = idx;
+    this.slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    this.updateUI(idx);
+  }
+  updateUI(idx) {
+    this.current = idx;
+    const progress = document.getElementById('progress');
+    if (progress) progress.style.width = ((idx + 1) / this.slides.length * 100) + '%';
+    const counter = document.getElementById('counter');
+    if (counter) counter.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(this.slides.length).padStart(2, '0');
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === idx);
+    });
+  }
+}
+document.addEventListener('DOMContentLoaded', () => new SlidePresentation());
+</script>
+</body>
+</html>
