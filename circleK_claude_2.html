@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code Workshop — CircleK</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <style>
+    /* === RESET === */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* === CSS CUSTOM PROPERTIES === */
+    :root {
+      --yellow: #F5C700;
+      --yellow-dark: #D4AA00;
+      --yellow-light: #FFF4CC;
+      --black: #111111;
+      --white: #FFFFFF;
+      --gray-light: #F7F7F7;
+      --gray-mid: #DEDEDE;
+      --gray-text: #555555;
+      --green: #4CAF50;
+      --green-light: #E8F5E9;
+      --red: #E53935;
+      --red-light: #FFEBEE;
+
+      --title-size: clamp(1.9rem, 4.5vw, 3.8rem);
+      --h2-size: clamp(1.4rem, 3vw, 2.4rem);
+      --h3-size: clamp(1rem, 2vw, 1.55rem);
+      --body-size: clamp(0.88rem, 1.6vw, 1.25rem);
+      --small-size: clamp(0.78rem, 1.3vw, 1.05rem);
+      --label-size: clamp(0.68rem, 1.1vw, 0.88rem);
+
+      --slide-padding: clamp(1.4rem, 3.5vh, 3rem) clamp(1.8rem, 4.5vw, 4.5rem);
+      --content-gap: clamp(0.6rem, 1.4vw, 1.4rem);
+      --element-gap: clamp(0.3rem, 0.8vw, 0.7rem);
+      --sidebar-w: clamp(48px, 5vw, 68px);
+
+      --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --dur-fast: 0.35s;
+      --dur-normal: 0.55s;
+      --dur-slow: 0.8s;
+    }
+
+    /* === BASE === */
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'DM Sans', sans-serif; background: var(--black); color: var(--black); }
+
+    .presentation { width: 100vw; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+    /* === SLIDE === */
+    .slide { width: 100vw; height: 100vh; height: 100dvh; scroll-snap-align: start; display: flex; flex-direction: row; overflow: hidden; background: var(--white); position: relative; }
+
+    /* === SIDEBAR === */
+    .sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); background: var(--yellow); display: flex; align-items: flex-end; justify-content: center; padding-bottom: calc(clamp(1rem,2.5vh,2rem) + 3rem); flex-shrink: 0; position: relative; }
+    .sidebar::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: rgba(0,0,0,0.18); }
+    .sidebar-label { writing-mode: vertical-rl; transform: rotate(180deg); font-family: 'Barlow', sans-serif; font-weight: 900; font-size: clamp(0.72rem,1.1vw,0.95rem); letter-spacing: 0.18em; text-transform: uppercase; color: var(--black); }
+
+    /* === MAIN CONTENT === */
+    .main { flex: 1; display: flex; flex-direction: column; padding: var(--slide-padding); gap: var(--content-gap); overflow: hidden; min-width: 0; }
+
+    .slide-header { flex-shrink: 0; }
+    h1.slide-title { font-family: 'Barlow', sans-serif; font-weight: 800; font-size: var(--title-size); color: var(--black); line-height: 1.15; letter-spacing: -0.02em; }
+    h2.slide-title { font-family: 'Barlow', sans-serif; font-weight: 800; font-size: var(--h2-size); color: var(--black); line-height: 1.15; }
+    .accent-bar { height: 4px; background: var(--yellow); width: 0; margin-bottom: 0.4em; margin-top: 0.3em; }
+
+    .slide-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: var(--content-gap); min-height: 0; }
+
+    /* === TYPOGRAPHY === */
+    h2 { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--h2-size); color: var(--black); }
+    h3 { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--h3-size); color: var(--black); margin-bottom: 0.25em; }
+    p { font-size: var(--body-size); color: var(--gray-text); line-height: 1.5; }
+    ul, ol { padding-left: 1.4em; display: flex; flex-direction: column; gap: var(--element-gap); }
+    li { font-size: var(--body-size); color: var(--gray-text); line-height: 1.4; }
+    strong { color: var(--black); font-weight: 700; }
+
+    /* === CARDS === */
+    .cards { display: grid; gap: clamp(0.4rem,0.9vw,0.85rem); }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .cols-5 { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
+    .card { background: var(--gray-light); border-top: 4px solid var(--yellow); border-radius: 0 0 6px 6px; padding: clamp(0.55rem,1.1vw,1rem); display: flex; flex-direction: column; gap: 0.25em; }
+    .card.featured { border-top-color: var(--black); }
+    .card.danger { border-top-color: var(--red); }
+    .card.success { border-top-color: var(--green); }
+    .card-title { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--small-size); color: var(--black); }
+    .card h4 { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--small-size); color: var(--black); }
+    .card p { font-size: var(--small-size); }
+    .card ul li, .card li { font-size: var(--small-size); }
+    .card.danger h4 { color: var(--red); }
+    .card.success h4 { color: #2e7d32; }
+
+    /* === TABLE === */
+    .tbl { width: 100%; border-collapse: collapse; font-size: var(--small-size); }
+    .tbl th { background: var(--black); color: var(--white); font-family: 'Barlow', sans-serif; font-weight: 700; padding: 0.38em 0.7em; font-size: var(--label-size); text-align: left; }
+    .tbl td { padding: 0.3em 0.7em; border-bottom: 1px solid var(--gray-mid); color: var(--gray-text); vertical-align: top; }
+    .tbl tr.hi td { background: var(--yellow-light); }
+    .tbl tr.highlight { background: var(--yellow-light); }
+
+    /* === BLOCKQUOTE === */
+    blockquote { border-left: 4px solid var(--yellow); padding: 0.5em 0.9em; background: var(--yellow-light); border-radius: 0 4px 4px 0; font-style: italic; color: var(--gray-text); font-size: var(--small-size); }
+    blockquote strong { color: var(--black); }
+
+    /* === FLOW === */
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3em; justify-content: center; }
+    .flow-box { background: var(--gray-light); border: 2px solid var(--gray-mid); border-radius: 6px; padding: 0.4em 0.7em; font-size: var(--label-size); text-align: center; white-space: nowrap; font-family: 'Barlow', sans-serif; font-weight: 600; }
+    .flow-box.hi { background: var(--yellow-light); border-color: var(--yellow-dark); font-weight: 600; }
+    .flow-box.dark { background: var(--black); color: var(--white); }
+    .flow-arrow { font-size: var(--h3-size); color: var(--yellow-dark); font-weight: 900; padding: 0 0.3em; }
+
+    /* === CODE === */
+    pre { background: var(--black); color: #e8e8e8; border-radius: 6px; padding: clamp(0.55rem,1.1vw,1rem); font-family: 'Courier New', Courier, monospace; font-size: var(--small-size); overflow: auto; line-height: 1.5; flex-shrink: 0; }
+    code { font-family: 'Courier New', Courier, monospace; font-size: 0.92em; background: var(--gray-light); padding: 0.1em 0.35em; border-radius: 3px; border: 1px solid var(--gray-mid); }
+
+    /* === HANDS-ON === */
+    .hands-on { background: #FFF8E0; border: 1px solid var(--yellow); border-left: 4px solid var(--yellow-dark); border-radius: 0 6px 6px 0; padding: 0.55em 0.95em; flex-shrink: 0; }
+    .ho-label { font-family: 'Barlow', sans-serif; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.1em; color: var(--yellow-dark); margin-bottom: 0.2em; }
+    .hands-on p { font-size: var(--small-size); color: var(--black); }
+    .hands-on li { font-size: var(--label-size); color: var(--gray-text); }
+    .hands-on ol, .hands-on ul { padding-left: 1.2em; }
+
+    /* === COMPARE === */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(0.4rem,0.9vw,0.85rem); }
+    .col-box { background: var(--gray-light); border-top: 4px solid var(--gray-mid); border-radius: 0 0 6px 6px; padding: 0.7em 0.9em; }
+    .col-box.hi { border-top-color: var(--yellow); }
+    .col-box.green { border-top-color: var(--green); }
+    .col-box.red { border-top-color: var(--red); }
+    .col-box h4 { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--small-size); margin-bottom: 0.3em; }
+    .col-box p, .col-box pre, .col-box li { font-size: var(--label-size); }
+    .col-box code { font-size: clamp(0.6rem, 0.9vw, 0.78rem); }
+
+    /* === STEPS === */
+    .steps { display: flex; flex-direction: column; gap: 0.32em; }
+    .step { display: flex; gap: 0.7em; align-items: flex-start; }
+    .step-n { background: var(--black); color: var(--yellow); font-family: 'Barlow', sans-serif; font-weight: 900; width: 1.5em; height: 1.5em; min-width: 1.5em; display: flex; align-items: center; justify-content: center; border-radius: 3px; flex-shrink: 0; font-size: var(--label-size); }
+    .step-t { font-size: var(--small-size); color: var(--gray-text); line-height: 1.4; }
+    .step-t strong { color: var(--black); }
+
+    /* === WARN BAR === */
+    .warn-bar { background: var(--red-light); border-left: 4px solid var(--red); border-radius: 0 6px 6px 0; padding: 0.5em 0.95em; flex-shrink: 0; display: flex; align-items: center; gap: 0.6em; }
+    .warn-bar-icon { font-family: 'Barlow', sans-serif; font-weight: 900; font-size: var(--label-size); color: var(--red); text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0; }
+    .warn-bar p { font-size: var(--small-size); color: var(--black); font-style: normal; }
+
+    /* === SEC-LABEL === */
+    .sec-label { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.12em; color: var(--gray-text); border-bottom: 2px solid var(--yellow); padding-bottom: 0.2em; margin-bottom: 0.4em; display: inline-block; }
+
+    /* === MATRIX (VibeCoding) === */
+    .matrix-grid { display: grid; grid-template-columns: auto 1fr 1fr; grid-template-rows: auto 1fr 1fr; gap: clamp(0.2rem, 0.5vw, 0.4rem); flex: 1; }
+    .matrix-header { font-family: 'Barlow', sans-serif; font-weight: 800; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.08em; display: flex; align-items: center; justify-content: center; padding: 0.3em 0.6em; color: var(--black); }
+    .matrix-cell { border-radius: 6px; padding: clamp(0.4rem, 1vw, 0.8rem); display: flex; flex-direction: column; justify-content: center; }
+    .matrix-cell h4 { font-family: 'Barlow', sans-serif; font-weight: 800; font-size: var(--small-size); margin-bottom: 0.2em; }
+    .matrix-cell p { font-size: var(--label-size); line-height: 1.3; }
+
+    /* === BADGE (VibeCoding) === */
+    .badge { display: inline-block; font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--label-size); padding: 0.15em 0.5em; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-yellow { background: var(--yellow); color: var(--black); }
+
+    /* === DIAGRAM BOX (Brownfield) === */
+    .diagram-box { background: var(--gray-light); border: 1px solid var(--gray-mid); border-radius: 6px; padding: clamp(0.5em, 1vw, 0.9em); font-family: 'Courier New', monospace; font-size: var(--label-size); line-height: 1.5; white-space: pre; overflow: hidden; color: var(--gray-text); flex: 1; }
+
+    /* === STATE DIAGRAM (Brownfield) === */
+    .state-diagram { display: flex; flex-direction: column; gap: 0.3em; align-items: center; }
+    .state-box { background: var(--gray-light); border: 2px solid var(--gray-mid); border-radius: 6px; padding: 0.3em 0.8em; font-family: 'Barlow', sans-serif; font-weight: 600; font-size: var(--label-size); text-align: center; }
+    .state-box.active { background: var(--yellow-light); border-color: var(--yellow-dark); }
+    .state-arrow { font-size: var(--body-size); color: var(--yellow-dark); font-weight: 900; }
+
+    /* === TITLE SLIDE === */
+    .title-slide .main { justify-content: center; position: relative; overflow: hidden; }
+    .title-deco { position: absolute; right: clamp(-60px, -5vw, -30px); top: 50%; transform: translateY(-50%); width: clamp(200px,40vw,500px); height: clamp(200px,40vw,500px); border-radius: 50%; background: var(--yellow); opacity: 0.07; pointer-events: none; }
+    .title-main { font-family: 'Barlow', sans-serif; font-weight: 900; font-size: clamp(2.4rem,6.5vw,5.5rem); letter-spacing: -0.03em; line-height: 1.05; color: var(--black); position: relative; z-index: 1; }
+    .title-sub { font-family: 'DM Sans', sans-serif; font-size: var(--h3-size); color: var(--gray-text); margin: 0.4em 0 0; position: relative; z-index: 1; }
+    .title-pres { margin-top: 1.5em; display: flex; flex-direction: column; gap: 0.3em; position: relative; z-index: 1; }
+    .pres-lbl { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: var(--label-size); text-transform: uppercase; letter-spacing: 0.15em; color: var(--gray-text); display: block; margin-bottom: 0.2em; }
+    .pres-names { font-family: 'Barlow', sans-serif; font-weight: 600; font-size: var(--small-size); color: var(--black); }
+
+    /* === ANIMATIONS === */
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeSlideLeft { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes accentBarGrow { from { width: 0; } to { width: clamp(50px,7vw,100px); } }
+
+    .reveal { opacity: 0; }
+    .reveal-left { opacity: 0; }
+    .visible .reveal { animation: fadeSlideUp 0.55s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .visible .reveal-left { animation: fadeSlideLeft 0.55s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .visible .stagger > *:nth-child(1) { animation-delay: 0.05s; }
+    .visible .stagger > *:nth-child(2) { animation-delay: 0.10s; }
+    .visible .stagger > *:nth-child(3) { animation-delay: 0.15s; }
+    .visible .stagger > *:nth-child(4) { animation-delay: 0.20s; }
+    .visible .stagger > *:nth-child(5) { animation-delay: 0.25s; }
+    .visible .stagger > *:nth-child(6) { animation-delay: 0.30s; }
+    .visible .stagger > *:nth-child(7) { animation-delay: 0.35s; }
+    .visible .stagger > *:nth-child(8) { animation-delay: 0.40s; }
+    .visible .accent-bar { animation: accentBarGrow 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s forwards; }
+
+    /* === NAVIGATION === */
+    #nav-ui { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; pointer-events: none; }
+    #progress-bar { width: 100%; height: 3px; background: rgba(0,0,0,0.12); }
+    #progress { height: 100%; background: var(--yellow); width: 0%; transition: width 0.4s ease; }
+    #nav-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.4em 1.2em 0.6em; background: rgba(17,17,17,0.82); backdrop-filter: blur(8px); pointer-events: all; }
+    #counter { font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 0.8rem; color: rgba(255,255,255,0.6); letter-spacing: 0.08em; }
+    #nav-dots { display: flex; gap: 6px; align-items: center; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.25); cursor: pointer; transition: background 0.25s, transform 0.25s; }
+    .dot.active { background: var(--yellow); transform: scale(1.35); }
+
+    /* === RESPONSIVE === */
+    @media (max-height: 700px) {
+      :root { --title-size: clamp(1.5rem,3.5vw,2.8rem); --body-size: clamp(0.75rem,1.3vw,1rem); --h3-size: clamp(0.85rem,1.6vw,1.25rem); }
+    }
+    @media (max-height: 600px) {
+      :root { --title-size: clamp(1.3rem,3vw,2.2rem); --body-size: clamp(0.72rem,1.2vw,0.95rem); --small-size: clamp(0.68rem,1.1vw,0.88rem); }
+    }
+    @media (max-height: 500px) {
+      :root { --title-size: clamp(1.1rem,2.5vw,1.8rem); }
+    }
+    @media (max-width: 600px) {
+      .cols-3, .cols-2, .cols-4, .cols-5, .compare { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="presentation">
+
+<section class="slide title-slide" id="s1">
+    <div class="sidebar"><span class="sidebar-label">BDD Workshop</span></div>
+    <div class="main">
+      <div class="title-deco"></div>
+      <div class="accent-bar"></div>
+      <h1 class="title-main reveal-left">BDD<br>z Claude Code</h1>
+      <p class="title-sub reveal">Behaviour-Driven Development — od PRD do raportu</p>
+    </div>
+  </section>
+
+<section class="slide" id="s2">
+    <div class="sidebar"><span class="sidebar-label">Agenda</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Plan</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div style="display:flex;flex-direction:column;gap:var(--element-gap);flex:1;justify-content:flex-start;margin-top:0.5em;">
+          <p style="margin:0;"><strong>Wprowadzenie:</strong> BDD, Gherkin, Cucumber i co to dobry scenariusz</p>
+          <div class="steps reveal">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Plan Mode</strong> — generowanie scenariuszy na podstawie PRD</div></div>
+            <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Ocena i korekta</strong> — przeglądamy scenariusze i zapisujemy plan</div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Implementacja</strong> — step definitions, konfiguracja Cucumber i weryfikacja spójności</div></div>
+            <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Analiza luk</strong> — porównanie z istniejącymi testami w repo</div></div>
+            <div class="step"><div class="step-n">5</div><div class="step-t"><strong>Naprawiamy</strong> — to, co blokuje</div></div>
+            <div class="step"><div class="step-n">6</div><div class="step-t"><strong>Uruchomienie</strong> — odpalamy testy</div></div>
+            <div class="step"><div class="step-n">7</div><div class="step-t"><strong>Raport</strong> — czytelne podsumowanie dla Product Ownera</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s3">
+    <div class="sidebar"><span class="sidebar-label">Dlaczego BDD?</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Kod vs. Gherkin</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div class="col-box red" style="border-top:4px solid var(--red);border-radius:0 0 6px 6px;padding:0.7em 0.9em;">
+            <h4 style="font-family:'Barlow';font-weight:700;font-size:var(--small-size);margin-bottom:0.4em;color:var(--red);">Kod</h4>
+            <pre style="font-size:var(--label-size);flex:1;margin:0;">mockMvc.perform(post("/reservations")
+    .header("X-User-Id", "2")
+    .content(body))
+  .andExpect(status().isCreated())
+  .andExpect(jsonPath("$.status")
+    .value("PENDING"));</pre>
+          </div>
+          <div class="col-box green" style="border-top:4px solid var(--green);border-radius:0 0 6px 6px;padding:0.7em 0.9em;">
+            <h4 style="font-family:'Barlow';font-weight:700;font-size:var(--small-size);margin-bottom:0.4em;color:#2e7d32;">Gherkin</h4>
+            <pre style="font-size:var(--label-size);flex:1;margin:0;">Scenario: Customer locks available seat
+  Given screening "Inception"
+    has seat A1 available
+  When Alice selects seat A1
+  Then reservation is PENDING
+  And seat A1 becomes LOCKED</pre>
+          </div>
+        </div>
+        <blockquote class="reveal">Gherkin to język, który łatwiej zrozumieć — szczególnie gdy chcemy rozmawiać z Product Ownerem.</blockquote>
+        <div class="cards cols-2 reveal">
+          <div class="card success">
+            <div class="card-title">Kiedy pisać scenariusze BDD?</div>
+            <p>Najlepiej <strong>przed implementacją</strong>, jeśli to możliwe — BDD to narzędzie rozmowy o wymaganiach, nie tylko testowania.</p>
+          </div>
+          <div class="hands-on">
+            <div class="ho-label">Hands-on</div>
+            <p>Jak myślicie? Co sprawia, że Claude dobrze rozumie i generuje scenariusze Gherkin?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s4">
+    <div class="sidebar"><span class="sidebar-label">Gherkin / Cucumber</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Definicje</h2>
+      </div>
+      <div class="slide-body stagger">
+        <table class="tbl reveal">
+          <thead>
+            <tr><th>Pojęcie</th><th>Co to jest</th><th>Przykład</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>BDD</strong></td><td>Podejście — testy opisują zachowanie, nie implementację</td><td>„Co system robi, nie jak to robi"</td></tr>
+            <tr><td><strong>Gherkin</strong></td><td>Język — Given / When / Then</td><td>Pliki <code>.feature</code></td></tr>
+            <tr><td><strong>Cucumber</strong></td><td>Narzędzie — uruchamia Gherkin jako testy</td><td>Cucumber-JVM dla Spring Boot</td></tr>
+          </tbody>
+        </table>
+        <div class="reveal">
+          <div class="sec-label">Gdzie pojawia się raportowanie?</div>
+          <div class="flow" style="margin-top:0.4em;">
+            <div class="flow-box hi">.feature (Gherkin)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">Cucumber uruchamia</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box">Step definitions (Java)</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box hi">Raport HTML / JSON</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box dark">Product Owner ✓</div>
+          </div>
+        </div>
+        <div class="reveal" style="background:var(--black);border-radius:6px;padding:0.6em 0.9em;font-family:'Courier New',monospace;font-size:var(--label-size);line-height:1.8;">
+          <div style="color:#9e9e9e;margin-bottom:0.3em;">Feature: Cinema seat reservation</div>
+          <div style="color:#a8d8a8;">✓ Customer locks available seat <span style="color:#555;margin-left:0.5em;">0.312s</span></div>
+          <div style="color:#a8d8a8;">✓ Seat already locked — reservation rejected <span style="color:#555;margin-left:0.5em;">0.198s</span></div>
+          <div style="color:#a8d8a8;">✓ Customer cancels their own reservation <span style="color:#555;margin-left:0.5em;">0.241s</span></div>
+          <div style="color:#ff8a80;">✗ Expired lock releases seat automatically <span style="color:#555;margin-left:0.5em;">0.089s</span></div>
+          <div style="color:#9e9e9e;margin-top:0.4em;">3 passed, 1 failed</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s5">
+    <div class="sidebar"><span class="sidebar-label">Dobry scenariusz</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Trzy poziomy szczegółowości</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="compare reveal" style="grid-template-columns:1fr 1fr 1fr;flex:1;align-items:stretch;">
+          <div class="col-box red">
+            <h4 style="color:var(--red);">Za prosty</h4>
+            <pre style="font-size:var(--label-size);background:var(--red-light);color:var(--black);border:1px solid var(--red);margin-bottom:0.4em;">Given a movie is showing
+When I book a seat
+Then the booking
+  is confirmed</pre>
+            <p style="font-size:var(--label-size);">Nie weryfikuje niczego konkretnego. Przejdzie nawet gdy logika jest zepsuta.</p>
+          </div>
+          <div class="col-box hi">
+            <h4 style="color:#b8860b;">Odpowiedni ✓</h4>
+            <pre style="font-size:var(--label-size);background:var(--yellow-light);color:var(--black);border:1px solid var(--yellow-dark);margin-bottom:0.4em;">Given screening "Inception"
+  has seat A1 AVAILABLE
+When Alice selects seat A1
+Then reservation is PENDING
+And seat A1 becomes LOCKED</pre>
+            <p style="font-size:var(--label-size);">Konkretne wartości, dwa stany w Then, czytelny dla biznesu.</p>
+          </div>
+          <div class="col-box red">
+            <h4 style="color:var(--red);">Za szczegółowy</h4>
+            <pre style="font-size:var(--label-size);background:var(--red-light);color:var(--black);border:1px solid var(--red);margin-bottom:0.4em;">When POST /reservations
+  body: {"seatIds":[42]}
+Then HTTP 201
+And SELECT status FROM
+  seats WHERE id=42
+  = 'LOCKED'</pre>
+            <p style="font-size:var(--label-size);">Implementacja wyciekła do scenariusza. Zmiana endpointu = zmiana scenariusza.</p>
+          </div>
+        </div>
+        <blockquote class="reveal"><strong>Wskazówka:</strong> Then powinno opisywać efekt z perspektywy użytkownika — co widzi, co dostaje, jaki status ma jego rezerwacja. Nie: co jest w bazie danych ani jaki kod HTTP zwrócił serwer.</blockquote>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s6">
+    <div class="sidebar"><span class="sidebar-label">Punkt startowy</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Punkt startowy: jeden plik PRD</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div class="card featured">
+            <div class="card-title">Uruchomcie Claude z folderu z repo CinemaBook</div>
+            <p>Repo zawiera już kod aplikacji i testy integracyjne — ale na początku celowo go ignorujemy. Przez pierwsze kroki Claude ma bazować <strong>wyłącznie na <code>prd.md</code></strong>. Dopiero później damy mu dostęp do reszty.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Co opisuje PRD — CinemaBook</div>
+            <ul style="margin-top:0.3em;font-size:var(--small-size);">
+              <li>Przeglądanie filmów i seansów (US-001, US-002)</li>
+              <li>Mapa miejsc: STANDARD, PREMIUM, ACCESSIBLE (US-003)</li>
+              <li>Blokowanie miejsc na <strong>15 minut</strong> (US-004)</li>
+              <li>Potwierdzanie rezerwacji (US-005)</li>
+              <li>Automatyczne wygaśnięcie blokady (US-006)</li>
+              <li>Anulowanie rezerwacji + refund (US-007)</li>
+              <li>Ochrona przed double-bookingiem (US-013)</li>
+              <li>Limit rezerwacji, cutoff, dynamic pricing…</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s7">
+    <div class="sidebar"><span class="sidebar-label">Plan Mode</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 1 — Plan Mode: generuj scenariusze z PRD</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div>
+            <div class="sec-label">Jak wejść w Plan Mode</div>
+            <div class="card featured" style="margin-bottom:0.4em;">
+              <div class="card-title"><kbd style="background:var(--yellow);border-radius:3px;padding:0.1em 0.4em;font-family:'Courier New';">Shift + Tab</kbd> → Plan Mode</div>
+            </div>
+            <div class="sec-label" style="margin-top:0.4em;">Co zawrzeć w prompcie</div>
+            <div class="steps" style="margin-top:0.3em;">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Wskaż <code>prd.md</code> jako jedyne źródło — powiedz Claude, żeby nie czytał kodu aplikacji</div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Powiedz jakiego formatu oczekujesz — Feature, Background, Scenario</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Zaznacz, że chcesz zachowania biznesowe — nie szczegóły techniczne</div></div>
+              <div class="step"><div class="step-n">4</div><div class="step-t">Poproś o happy path i przypadki błędów</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Czego się spodziewać</div>
+            <div class="steps">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Claude przeczyta PRD i wylistuje user stories</div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Zaproponuje Feature files z Background i Scenario</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Warto poprosić go, żeby wytłumaczył decyzje — co pokrył, co pominął i dlaczego</div></div>
+              <div class="step"><div class="step-n">4</div><div class="step-t">Nie zapisze nic na dysku — tylko odpowiedź tekstowa</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">Hands-on</div>
+          <p>Wejdźcie w Plan Mode (<kbd style="background:var(--yellow-dark);border-radius:3px;padding:0.05em 0.35em;color:var(--black);">Shift+Tab</kbd>) i napiszcie własny prompt — poproście Claude o wygenerowanie scenariuszy Gherkin na podstawie <code>prd.md</code>. Poczekajcie na wynik — <strong>nie akceptujcie jeszcze</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s8">
+    <div class="sidebar"><span class="sidebar-label">Ocena scenariuszy</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 2 — Jak oceniać to, co Claude wygenerował</h2>
+      </div>
+      <div class="slide-body stagger">
+        <table class="tbl reveal">
+          <thead>
+            <tr><th>Co sprawdzić</th><th style="color:#ff8a80;">Źle</th><th style="color:#a5d6a7;">Dobrze</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Wartości statusów</strong></td><td><code>CONFIRMED</code>, <code>BOOKED</code></td><td><code>PENDING</code>, <code>LOCKED</code>, <code>RESERVED</code> (z PRD)</td></tr>
+            <tr><td><strong>Then weryfikuje dwa stany</strong></td><td><code>Then booking is done</code></td><td><code>Then reservation is PENDING</code> + <code>And seat A1 is LOCKED</code></td></tr>
+            <tr><td><strong>Gherkin czy implementacja?</strong></td><td><code>Then HTTP 201 is returned</code></td><td><code>Then customer receives reservation code</code></td></tr>
+          </tbody>
+        </table>
+        <div class="reveal">
+          <div class="sec-label">Pytania do omówienia w parach</div>
+          <div class="cards cols-3" style="margin-top:0.3em;">
+            <div class="card">
+              <div class="card-title">Czy scenariusze są zrozumiałe?</div>
+              <p>Czy każdy krok Given/When/Then jest jasny bez znajomości kodu?</p>
+            </div>
+            <div class="card">
+              <div class="card-title">Czy Then jest wystarczający?</div>
+              <p>Czy każdy scenariusz weryfikuje to, co naprawdę ważne — czy Then mógłby być bardziej precyzyjny?</p>
+            </div>
+            <div class="card featured">
+              <div class="card-title">Czy czegoś brakuje?</div>
+              <p>Porównajcie wynik z PRD — czy jest coś, co powinno być przetestowane, a nie ma scenariusza?</p>
+            </div>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">Hands-on</div>
+          <p>Kilka minut na przegląd. Spróbujcie znaleźć z Claude co najmniej <strong>jedną rzecz do poprawki</strong> i <strong>jakiś ciekawy edge case</strong> — i dodajcie je.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s9">
+    <div class="sidebar"><span class="sidebar-label">Zapisz plan</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Zaakceptuj i zapisz plan</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Plan Mode nie zapisuje plików automatycznie</div>
+            <div class="card success">
+              <div class="card-title">Opcja A — przez Claude (po wyjściu z Plan Mode)</div>
+              <pre style="font-size:var(--label-size);background:var(--black);color:#e8e8e8;border-radius:4px;padding:0.5em 0.7em;">Save the feature file content
+from the plan as
+reservation.feature</pre>
+            </div>
+            <div class="card">
+              <div class="card-title">Opcja B — ręcznie</div>
+              <p>Skopiuj treść <code>.feature</code> z odpowiedzi Claude do nowego pliku w <code>src/test/resources/features/</code></p>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Jeśli znalazłeś błąd w scenariuszu</div>
+            <div class="card featured">
+              <div class="card-title">Daj Claude konkretny błąd</div>
+              <pre style="font-size:var(--label-size);background:var(--black);color:#e8e8e8;border-radius:4px;padding:0.5em 0.7em;margin-top:0.3em;">In the cancellation scenario,
+the Then step is incomplete.
+When a reservation is cancelled,
+TWO things change:
+- reservation → CANCELLED
+- seat → AVAILABLE
+Rewrite only the Then steps.</pre>
+            </div>
+            <blockquote>Nie poprawiaj ręcznie tego, co Claude zrobił źle. Daj mu <strong>konkretny błąd i kontekst</strong>.</blockquote>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s10">
+    <div class="sidebar"><span class="sidebar-label">Implementacja</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 3 — Implementacja testów</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="warn-bar reveal">
+          <div class="warn-bar-icon">⚠ Ważne</div>
+          <p><strong>Wyjdź z Plan Mode przed tym krokiem.</strong></p>
+        </div>
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Co zawrzeć w prompcie</div>
+            <div class="steps" style="margin-top:0.3em;">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Odwołaj się do planu, który właśnie stworzyliście</div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Powiedz jakiego narzędzia używacie — Cucumber, Maven/Gradle, Spring Boot</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Poproś, żeby zaczął od zależności i konfiguracji</div></div>
+              <div class="step"><div class="step-n">4</div><div class="step-t">Poproś o jeden działający scenariusz end-to-end na start</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Czego się spodziewać</div>
+            <div class="steps">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Claude zaproponuje zmiany w <code>pom.xml</code> lub <code>build.gradle</code></div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Stworzy konfigurację Cucumber + Spring Boot test context</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Wygeneruje step definitions dla pliku <code>.feature</code></div></div>
+              <div class="step"><div class="step-n">4</div><div class="step-t">Pokaże co jeszcze trzeba zainstalować / skonfigurować</div></div>
+            </div>
+            <blockquote>Czytajcie co Claude sugeruje — zanim zaakceptujecie. Ten krok może potrwać dłużej niż inne.</blockquote>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">Hands-on</div>
+          <p>Napiszcie własny prompt do implementacji i go uruchomcie. Jeśli Claude prosi o dodatkowe informacje o stacku — odpowiedzcie. Nie spieszcie się z akceptowaniem zmian w plikach konfiguracyjnych.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s11">
+    <div class="sidebar"><span class="sidebar-label">Weryfikacja</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 3 cd. — Weryfikacja spójności</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Zapytaj Claude o spójność</div>
+            <div class="steps" style="margin-top:0.3em;">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Poproś o przegląd step definitions pod kątem zgodności z plikiem <code>.feature</code></div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Zapytaj czy kroki Then weryfikują wszystkie zmiany stanu</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Zapytaj czy coś jest hardcoded zamiast pobierane z parametrów scenariusza</div></div>
+              <div class="step"><div class="step-n">4</div><div class="step-t">Poproś o listę znalezionych problemów</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s12">
+    <div class="sidebar"><span class="sidebar-label">Analiza luk</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 4 — Analiza luk i połączenie z repo</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Co zawrzeć w prompcie</div>
+            <div class="steps" style="margin-top:0.3em;">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Poproś o porównanie scenariuszy Gherkin z istniejącymi testami integracyjnymi</div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Zapytaj które zachowania są pokryte w obu miejscach</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Zapytaj które zachowania mają tylko stare testy — bez Gherkina</div></div>
+              <div class="step"><div class="step-n">4</div><div class="step-t">Poproś o podsumowanie w tabeli z rekomendowanymi akcjami</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Co spodziewać się znaleźć</div>
+            <div class="card">
+              <div class="card-title">Happy path — prawdopodobnie duplikaty</div>
+              <p>Scenariusze Gherkin mogą pokrywać się z istniejącymi MockMvc testami. Czy wiecie dlaczego taka duplikacja może być celowa?</p>
+            </div>
+            <div class="card danger">
+              <div class="card-title">Przypadki brzegowe — brak pokrycia</div>
+              <p>US-017 (cutoff), US-018 (adjacent seats), US-020 (limit rezerwacji) mogą nie mieć pokrycia w ogóle.</p>
+            </div>
+
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">Hands-on</div>
+          <p>Teraz dajcie Claude dostęp do reszty repo — przestaje bazować tylko na PRD. Napiszcie własny prompt do analizy. Zastanówcie się: <strong>które luki są krytyczne</strong>, a które można zostawić na kolejną iterację?</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s13">
+    <div class="sidebar"><span class="sidebar-label">Naprawiamy</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 5 — Naprawiamy to, co blokuje</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Błąd kompilacji</div>
+            <pre style="font-size:var(--label-size);">The step definition for
+[paste step]
+causes a compilation error:
+[paste error]
+
+The scenario context:
+[paste scenario]
+
+Fix only this step definition.</pre>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Test przechodzi, ale nie powinien</div>
+            <pre style="font-size:var(--label-size);">This scenario passes but
+it should fail:
+[paste scenario]
+
+Actual behavior: [describe]
+Expected per PRD: [describe]
+
+Why is the test not catching this?
+Fix the step definition.</pre>
+          </div>
+        </div>
+        <div class="card featured reveal">
+          <div class="card-title">Zasada: jeden problem — jeden prompt</div>
+          <p>Nie dawaj Claude pięciu błędów na raz. <strong>Jeden problem, konkretny kontekst, oczekiwany wynik.</strong></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s14">
+    <div class="sidebar"><span class="sidebar-label">Odpalamy testy</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 6 — Uruchamiamy testy</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Poproś Claude o komendę</div>
+            <pre style="font-size:var(--label-size);">How do I run only the Cucumber
+tests for the reservation feature?
+Give me the exact Maven/Gradle
+command.</pre>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Gdy testy failują — diagnozuj najpierw</div>
+            <pre style="font-size:var(--label-size);">Test failed with:
+[paste output]
+
+Failing scenario:
+[paste scenario]
+
+What is the most likely cause?
+Do not fix yet — just diagnose.</pre>
+            <blockquote>Nie poprawiaj na ślepo. Diagnoza przed naprawą — oszczędza czas.</blockquote>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">Hands-on</div>
+          <p>Odpalcie testy na repo. <strong>Jeden przechodzący scenariusz to sukces.</strong> Nie musicie mieć wszystkich zielonych.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s15">
+    <div class="sidebar"><span class="sidebar-label">Raport dla PO</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 7 — Raport czytelny dla Product Ownera</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Jak to zrobić</div>
+            <div class="steps" style="margin-top:0.3em;">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Poproś Claude o konfigurację Cucumber plugin do generowania raportu HTML</div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Uruchom testy — Cucumber wygeneruje raport automatycznie</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Otwórzcie raport w przeglądarce</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Dlaczego to ważne</div>
+            <div class="card success">
+              <div class="card-title">Gherkin = żywa dokumentacja</div>
+              <p>Kiedy wymaganie się zmienia — scenariusz się zmienia razem z nim. Raport zawsze odzwierciedla aktualny stan.</p>
+            </div>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">Hands-on</div>
+          <p>Skonfigurujcie narzędzie, odpalcie testy, wygenerujcie raport i otwórzcie go w przeglądarce — poczujcie się jak PO :)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s16">
+    <div class="sidebar"><span class="sidebar-label">Podsumowanie</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Podsumowanie</h2>
+      </div>
+      <div class="slide-body stagger">
+        <table class="tbl reveal">
+          <thead>
+            <tr><th>Krok</th><th>Co robi Claude</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Generowanie scenariuszy</strong></td><td>Czyta PRD, proponuje pokrycie, nie pisze kodu</td></tr>
+            <tr><td><strong>Ocena i korekta</strong></td><td>Poprawia scenariusze na podstawie konkretnych błędów</td></tr>
+            <tr><td><strong>Implementacja</strong></td><td>Pisze step definitions, konfiguruje Cucumber</td></tr>
+            <tr><td><strong>Analiza luk</strong></td><td>Porównuje Gherkin z istniejącymi testami</td></tr>
+            <tr><td><strong>Raport</strong></td><td>Tłumaczy wyniki na język biznesowy</td></tr>
+          </tbody>
+        </table>
+        <div class="cards cols-2 reveal">
+          <div class="card featured">
+            <div class="card-title">Pamiętajcie</div>
+            <p><strong>Generuj → przeczytaj krytycznie → poprawiaj iteracyjnie</strong></p>
+          </div>
+          <div class="card success">
+            <div class="card-title">Co dalej?</div>
+            <p>Scenariusze Gherkin to żywa dokumentacja. Dobre BDD starzeje się wolno.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide title-slide" id="s17">
+    <div class="sidebar"><span class="sidebar-label">Playwright</span></div>
+    <div class="main">
+      <div class="title-deco"></div>
+      <div class="accent-bar"></div>
+      <h1 class="title-main reveal-left">UI Testing<br>z Claude Code</h1>
+      <p class="title-sub reveal">Playwright — testy E2E</p>
+    </div>
+  </section>
+
+<section class="slide" id="s18">
+    <div class="sidebar"><span class="sidebar-label">Plan</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Plan</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div style="display:flex;flex-direction:column;gap:var(--element-gap);flex:1;justify-content:flex-start;margin-top:0.5em;">
+          <p style="margin:0;"><strong>Wprowadzenie:</strong> E2E vs inne testy, lokatory i Page Object Model</p>
+          <div class="steps reveal">
+            <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Instalacja</strong> — Claude konfiguruje Playwright w waszym repo</div></div>
+            <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Propozycja testów</strong> — Claude generuje testy na podstawie waszego kodu</div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Ocena i implementacja</strong> — sprawdzacie lokatory, asercje, pokrycie — akceptujecie plan</div></div>
+            <div class="step"><div class="step-n">4</div><div class="step-t"><strong>Poprawki</strong> — konkretny feedback, Claude poprawia</div></div>
+            <div class="step"><div class="step-n">5</div><div class="step-t"><strong>Uruchomienie</strong> — przeglądarka automatycznie przechodzi przez cały flow</div></div>
+            <div class="step"><div class="step-n">6</div><div class="step-t"><strong>Debugging</strong> — trace viewer</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s19">
+    <div class="sidebar"><span class="sidebar-label">Kiedy E2E?</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Kiedy Playwright?</h2>
+      </div>
+      <div class="slide-body stagger">
+        <table class="tbl reveal">
+          <thead>
+            <tr><th style="width:16%"></th><th style="width:28%">Unit test</th><th style="width:28%">Integration test</th><th style="width:28%">E2E (Playwright)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Co testuje</strong></td><td>Funkcja/komponent w izolacji</td><td>API + baza danych</td><td>Cały flow z przeglądarką</td></tr>
+            <tr><td><strong>Przeglądarka</strong></td><td>Nie</td><td>Nie</td><td>Tak</td></tr>
+            <tr><td><strong>Wykrywa</strong></td><td>Błąd logiki</td><td>Błąd integracji</td><td>Błąd UX, regresję widoku</td></tr>
+            <tr><td><strong>Prędkość</strong></td><td>Bardzo szybki</td><td>Szybki</td><td>Wolniejszy</td></tr>
+          </tbody>
+        </table>
+        <div class="cards cols-2 reveal">
+          <div class="card">
+            <div class="card-title">Kiedy E2E się opłaca?</div>
+            <ul style="margin-top:0.3em;">
+              <li>Krytyczny flow, który musi działać dla użytkownika — rezerwacja, płatność, logowanie</li>
+              <li>Regresja po zmianie frontendu — czy coś co działało nadal działa?</li>
+                          </ul>
+          </div>
+          <div class="card danger">
+            <div class="card-title">Uwaga</div>
+            <p>E2E to uzupełnienie, nie zamiennik innych testów.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s20">
+    <div class="sidebar"><span class="sidebar-label">Jak wygląda test</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Jak wygląda test Playwright</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Test</div>
+            <pre style="font-size:var(--label-size);flex:1;">test('customer selects available seat', async ({ page }) => {
+  await page.goto('/screenings/1');
+
+  const seat = page.getByTestId('seat-A1');
+  await expect(seat).toHaveAttribute('data-status', 'AVAILABLE');
+
+  await seat.click();
+  await expect(seat).toHaveAttribute('data-status', 'LOCKED');
+  await expect(page.getByRole('button', { name: 'Potwierdź rezerwację' }))
+    .toBeVisible();
+});</pre>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Co tu widać?</div>
+            <ul style="margin-top:0.3em;">
+              <li><code>goto</code> — otwiera stronę w prawdziwej przeglądarce</li>
+              <li><code>getByTestId</code> / <code>getByRole</code> — lokatory semantyczne, nie CSS</li>
+              <li><code>expect(...).toHaveAttribute</code> — asercja na stan</li>
+              <li>Brak <code>sleep</code> — Playwright sam czeka na elementy</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s21">
+    <div class="sidebar"><span class="sidebar-label">Lokatory</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Lokatory</h2>
+      </div>
+      <div class="slide-body stagger">
+        <table class="tbl reveal">
+          <thead>
+            <tr><th></th><th>Lokator</th><th>Problem</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Fragile</strong></td><td><code>page.locator('.seat-btn.blue')</code></td><td>Zmiana CSS = test się sypie</td></tr>
+            <tr><td><strong>Fragile</strong></td><td><code>page.locator('div &gt; div &gt; button:nth-child(3)')</code></td><td>Zmiana struktury HTML = test się sypie</td></tr>
+            <tr><td><strong>Lepszy</strong></td><td><code>page.getByText('A1')</code></td><td>Działa jeśli tekst jest unikalny</td></tr>
+            <tr><td><strong>Dobry</strong></td><td><code>page.getByRole('button', { name: 'Zarezerwuj' })</code></td><td>Semantyczny, nie zależy od CSS</td></tr>
+            <tr class="hi"><td><strong>Najlepszy</strong></td><td><code>page.getByTestId('seat-A1')</code></td><td>Stabilny — ale wymaga <code>data-testid</code> w HTML</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s22">
+    <div class="sidebar"><span class="sidebar-label">Ćwiczenie</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Ćwiczenie: Lokatory</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="hands-on reveal">
+          <div class="ho-label">HANDS-ON</div>
+          <p>Otwórzcie DevTools i przejrzyjcie swój interfejs. Jakie lokatory znajdziecie? Czy są <code>data-testid</code>? Role? Stabilne teksty?</p>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">HANDS-ON</div>
+          <p>Wasza mapa miejsc ma 8 rzędów i 10 kolumn — 80 przycisków. Playwright wywołuje <code>getByRole('button')</code>. Co się dzieje? Jak to naprawić?</p>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">HANDS-ON</div>
+          <p>Jeśli Claude jeszcze nie dodał <code>data-testid</code> — poproście go teraz. Już w pierwszym prompcie zapytajcie: dlaczego dodał je tam, gdzie dodał? Czy to ma sens?</p>
+          <pre style="font-size:var(--label-size);margin-top:0.4em;">&lt;!-- zamiast: --&gt;
+&lt;button class="seat available" onClick={...}&gt;A1&lt;/button&gt;
+
+&lt;!-- z data-testid: --&gt;
+&lt;button class="seat available" data-testid="seat-A1" data-status="AVAILABLE" onClick={...}&gt;A1&lt;/button&gt;</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s23">
+    <div class="sidebar"><span class="sidebar-label">Page Object</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Page Object Model</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Bez POM</div>
+            <pre style="flex:1;">// test A
+await page.getByTestId('seat-A1').click();
+await page.getByRole('button',
+  { name: 'Potwierdź rezerwację' }).click();
+
+// test B — ten sam lokator skopiowany
+await page.getByTestId('seat-A1').click();
+await page.getByRole('button',
+  { name: 'Potwierdź rezerwację' }).click();</pre>
+            <div class="card danger">
+              <div class="card-title">Problem</div>
+              <p>Lokator w 10 testach. Zmiana nazwy przycisku → poprawiasz w 10 miejscach.</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Z POM</div>
+            <pre style="flex:1;">// SeatMapPage.ts
+class SeatMapPage {
+  selectSeat(id: string) {
+    return this.page
+      .getByTestId(`seat-${id}`).click();
+  }
+  confirmReservation() {
+    return this.page
+      .getByRole('button',
+        { name: 'Potwierdź rezerwację' })
+      .click();
+  }
+}
+
+// test A i B
+await seatMap.selectSeat('A1');
+await seatMap.confirmReservation();</pre>
+            <div class="card success">
+              <div class="card-title">Zaleta</div>
+              <p>Lokator w jednym miejscu. Zmiana nazwy przycisku → poprawiasz tylko w <code>SeatMapPage</code>.</p>
+            </div>
+          </div>
+        </div>
+        <blockquote class="reveal">Za chwilę poprosicie Claude o wygenerowanie tego od razu — razem z testami.</blockquote>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s24">
+    <div class="sidebar"><span class="sidebar-label">Instalacja</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 1 — Instalacja i konfiguracja</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Co zawrzeć w prompcie</div>
+            <div class="steps" style="margin-top:0.3em;">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Frontend to statyczna strona serwowana przez Spring Boot</div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Poproś o jeden smoke test — czy strona główna się ładuje</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Czego się spodziewać</div>
+            <div class="steps">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Claude doda <code>@playwright/test</code> do <code>package.json</code></div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Uruchomi <code>npx playwright install</code> — pobierze przeglądarki</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Stworzy <code>playwright.config.ts</code></div></div>
+              <div class="step"><div class="step-n">4</div><div class="step-t">Napisze pierwszy smoke test</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">HANDS-ON</div>
+          <p>Napiszcie własny prompt do instalacji. Poczekajcie aż Claude zaproponuje zmiany, przejrzyjcie je, zaakceptujcie.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s25">
+    <div class="sidebar"><span class="sidebar-label">Propozycja</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 2 — Claude proponuje testy</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Co zawrzeć w prompcie</div>
+            <div class="steps" style="margin-top:0.3em;">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Powiedz jaki flow chcecie przetestować</div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Poproś o użycie Page Object Model</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Poproś o happy path i przypadki błędów</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Czego się spodziewać</div>
+            <div class="steps">
+              <div class="step"><div class="step-n">1</div><div class="step-t">Claude przeanalizuje repo i zaproponuje lokatory dopasowane do waszego kodu</div></div>
+              <div class="step"><div class="step-n">2</div><div class="step-t">Wygeneruje Page Object z metodami odpowiadającymi waszemu flow</div></div>
+              <div class="step"><div class="step-n">3</div><div class="step-t">Napisze testy korzystające z Page Object</div></div>
+              <div class="step"><div class="step-n">4</div><div class="step-t">Nie akceptujcie jeszcze — najpierw przeczytajcie</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">HANDS-ON</div>
+          <p>Napiszcie własny prompt i uruchomcie w Plan Mode. Poczekajcie na wynik — nie akceptujcie jeszcze.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s26">
+    <div class="sidebar"><span class="sidebar-label">Ocena</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 3 — Ocena i implementacja</h2>
+      </div>
+      <div class="slide-body stagger">
+        <blockquote class="reveal"><strong>Przypomnienie:</strong> jesteście w Plan Mode — Claude zaproponował zmiany, ale jeszcze ich nie zaaplikował. Oceńcie plan, a dopiero potem zaakceptujcie.</blockquote>
+        <table class="tbl reveal">
+          <thead>
+            <tr><th>Co sprawdzić</th><th>Źle</th><th>Dobrze</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Lokatory</strong></td><td><code>.locator('.btn-class')</code></td><td><code>getByTestId(...)</code> lub <code>getByRole</code></td></tr>
+            <tr><td><strong>Asercja</strong></td><td><code>expect(element).toBeDefined()</code></td><td><code>expect(element).toHaveAttribute(...)</code> lub <code>toBeVisible()</code></td></tr>
+            <tr><td><strong>Pokrycie</strong></td><td>tylko happy path</td><td>happy path + przypadki błędów</td></tr>
+          </tbody>
+        </table>
+        <div class="card reveal">
+          <div class="card-title">Pytania do sprawdzenia</div>
+          <div class="steps" style="margin-top:0.3em;">
+            <div class="step"><div class="step-n">1</div><div class="step-t">Czy lokatory istnieją w waszym HTML? Sprawdźcie w DevTools.</div></div>
+            <div class="step"><div class="step-n">2</div><div class="step-t">Czy asercja weryfikuje zmianę stanu — nie tylko że element istnieje?</div></div>
+            <div class="step"><div class="step-n">3</div><div class="step-t">Czy jest test dla przypadku błędu — np. niedostępny element, brak potwierdzenia?</div></div>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">HANDS-ON</div>
+          <p>Kilka minut na przegląd. Znajdźcie z Claude co najmniej jedną rzecz do poprawki — zaaplikujcie ją w ramach małej iteracji.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s27">
+    <div class="sidebar"><span class="sidebar-label">Poprawki</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 4 — Poprawki</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Lokator nie pasuje do waszego HTML</div>
+            <pre style="flex:1;">The locator [paste locator] does not exist in my component.
+Actual HTML: [paste from DevTools]
+Fix the locator.</pre>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Asercja jest zbyt słaba</div>
+            <pre style="flex:1;">This assertion only checks element exists.
+After seat selection, TWO things should change:
+- seat status → LOCKED
+- confirm button → visible
+Rewrite the assertions.</pre>
+          </div>
+        </div>
+        <div class="warn-bar reveal">
+          <div class="warn-bar-icon">Zasada</div>
+          <p>Jeden problem — jeden prompt.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s28">
+    <div class="sidebar"><span class="sidebar-label">Uruchomienie</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 5 — Uruchomienie</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Komendy</div>
+            <pre style="font-size:var(--label-size);"># --headed: otwiera prawdziwą przeglądarkę
+# domyślna: Chromium — zmień przez --project=firefox
+# lub --project=webkit
+# --slow-mo=500: 500ms przerwy między akcjami
+npx playwright test --headed --slow-mo=500</pre>
+            <pre style="font-size:var(--label-size);margin-top:0.6em;"># --ui: panel z listą testów,
+# podglądem na żywo i historią uruchomień
+npx playwright test --ui</pre>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="card">
+              <div class="card-title">Co zobaczycie</div>
+              <p>Przeglądarka otwiera się sama, klika miejsca, wypełnia formularze, sprawdza wyniki — wszystko automatycznie.</p>
+            </div>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">HANDS-ON</div>
+          <p>Uruchomcie z <code>--headed</code>. Patrzcie jak przeglądarka sama przechodzi przez flow rezerwacji. To jest cel tego warsztatu.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s29">
+    <div class="sidebar"><span class="sidebar-label">Trace viewer</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Krok 6 — Trace viewer i debugging</h2>
+      </div>
+      <div class="slide-body stagger">
+        <div class="cards cols-2 reveal" style="flex:1;align-items:stretch;">
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Gdy test failuje — nie czytajcie tylko błędu</div>
+            <pre style="font-size:var(--label-size);"># Uruchom testy z zapisem trace
+npx playwright test --trace on
+
+# Otwórz trace viewer
+npx playwright show-trace &lt;ścieżka/do/trace.zip&gt;</pre>
+            <div class="sec-label" style="margin-top:0.4em;">Diagnozuj zanim poprawisz</div>
+            <pre style="font-size:var(--label-size);">Test failed at step: [paste step]
+Error: [paste error]
+
+Here is the screenshot from trace viewer: [describe what you see]
+
+What is the most likely cause? Do not fix yet — just diagnose.</pre>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--element-gap);">
+            <div class="sec-label">Co pokazuje trace viewer</div>
+            <div class="card">
+              <div class="card-title">Trace viewer pokazuje</div>
+              <ul style="margin-top:0.3em;">
+                <li>Zrzut ekranu przy każdym kroku testu</li>
+                <li>Sieć — jakie requesty poszły, co wróciło</li>
+                <li>Timeline — kiedy co się załadowało</li>
+                <li>Dokładny moment, w którym test się wysypał</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="hands-on reveal">
+          <div class="ho-label">HANDS-ON</div>
+          <p>Celowo zepsujcie jeden lokator w teście, uruchomcie z <code>--trace on</code>, otwórzcie trace viewer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s30">
+    <div class="sidebar"><span class="sidebar-label">Podsumowanie</span></div>
+    <div class="main">
+      <div class="slide-header">
+        <div class="accent-bar"></div>
+        <h2 class="slide-title reveal-left">Podsumowanie</h2>
+      </div>
+      <div class="slide-body stagger">
+        <table class="tbl reveal">
+          <thead>
+            <tr><th>Krok</th><th>Co robi Claude</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Instalacja</strong></td><td>Konfiguruje Playwright, pisze smoke test</td></tr>
+            <tr><td><strong>Propozycja testów</strong></td><td>Generuje Page Object i testy dopasowane do waszego kodu</td></tr>
+            <tr><td><strong>Ocena i implementacja</strong></td><td>Czeka na akceptację planu — oceńcie zanim zatwierdzicie</td></tr>
+            <tr><td><strong>Poprawki</strong></td><td>Poprawia lokatory i asercje na podstawie konkretnych błędów</td></tr>
+            <tr><td><strong>Uruchomienie</strong></td><td>Uruchamia testy w Chromium — przeglądarka automatycznie przechodzi przez flow</td></tr>
+            <tr><td><strong>Debugging</strong></td><td>Diagnozuje błąd na podstawie trace i błędu</td></tr>
+          </tbody>
+        </table>
+        <blockquote class="reveal"><strong>Co dalej?</strong> Playwright + CI = każdy PR sprawdzony w przeglądarce, zanim trafi na main.</blockquote>
+      </div>
+    </div>
+  </section>
+
+<section class="slide" id="s31">
+    <div class="sidebar"><span class="sidebar-label">VibeCoding</span></div>
+    <div class="main" style="justify-content:center;">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">VibeCoding</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <div class="reveal" style="margin-bottom:var(--content-gap);">
+                <p class="sec-label">2 lutego 2025</p>
+                <p style="font-size:var(--body-size); color:var(--black); margin-top:0.3em;"><strong>Andrej Karpathy</strong> (współzałożyciel OpenAI) publikuje jeden tweet:</p>
+            </div>
+            <blockquote class="reveal" style="font-size:var(--h3-size); padding:0.7em 1.2em;">
+                <em>"There's a new kind of coding I call 'vibe coding', where you fully give in to the vibes, embrace exponentials, and forget that the code even exists."</em>
+            </blockquote>
+            <div class="cards cols-2 reveal" style="margin-top:var(--content-gap);">
+                <div class="card featured">
+                    <h4>Zasięg tweeta</h4>
+                    <p style="font-size:var(--h3-size); color:var(--black); font-family:'Barlow',sans-serif; font-weight:900;">4,5 miliona</p>
+                    <p>osób zobaczyło ten tweet</p>
+                </div>
+                <div class="card">
+                    <h4>Collins Dictionary</h4>
+                    <p style="font-size:var(--h3-size); color:var(--black); font-family:'Barlow',sans-serif; font-weight:900;">Słowo roku 2025</p>
+                    <p>VibeCoding oficjalnie uznany</p>
+                </div>
+            </div>
+            <blockquote class="reveal" style="margin-top:var(--content-gap); font-style:normal;">
+                Zanim przejdziemy dalej — <strong>czym właściwie jest VibeCoding</strong> i dlaczego powinni o tym wiedzieć deweloperzy z wieloletnim doświadczeniem?
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s32">
+    <div class="sidebar"><span class="sidebar-label">Definicja i spektrum</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Czym jest (a czym nie jest) VibeCoding?</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal" style="font-size:var(--body-size);"><strong>Definicja rdzeniowa:</strong> opisujesz co chcesz w języku naturalnym, AI generuje kod, <strong>celowo nie czytasz ani nie rozumiesz kodu</strong>.</p>
+
+            <blockquote class="reveal">
+                <em>"If an LLM wrote every line of your code, but you've reviewed, tested, and understood it all — that's NOT vibe coding. That's using an LLM as a typing assistant."</em>
+                <br><strong style="font-style:normal;">— Simon Willison</strong> (autor deta, były dyrektor PSF)
+            </blockquote>
+
+            <table class="tbl reveal" style="flex:1;">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>VibeCoding</th>
+                        <th>AI-assisted engineering</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Rozumienie kodu</strong></td>
+                        <td>Celowo pominięte</td>
+                        <td>Wymagane</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Przegląd wyników</strong></td>
+                        <td>Opcjonalny</td>
+                        <td>Obowiązkowy</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kto to robi</strong></td>
+                        <td>Każdy</td>
+                        <td>Ekspert + AI</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Główna wartość</strong></td>
+                        <td>Eksploracja, prędkość</td>
+                        <td>Jakość + prędkość</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td><strong>Ryzyko</strong></td>
+                        <td>Wysokie bez weryfikacji</td>
+                        <td>Niskie</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="reveal">
+                <p style="font-size:var(--small-size);"><strong>Spektrum:</strong> od <em>pure vibe</em> (niedewelopment, zero code review) → do <em>full AI-assisted engineering</em> (ekspert weryfikuje każdą linię).</p>
+            </div>
+
+            <blockquote class="reveal">
+                To nie jest pytanie "czy używasz AI" — to pytanie o <strong>świadomą postawę wobec kontroli nad kodem</strong>.
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s33">
+    <div class="sidebar"><span class="sidebar-label">The Verification Matrix</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">The Verification Matrix</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal" style="font-size:var(--small-size);">VibeCoding jest często definiowany przez to czego <em>nie ma</em> (rozumienie kodu). To błąd framing'u. Lepszy framing: VibeCoding to <strong>trade-off między zrozumieniem a weryfikacją</strong>.</p>
+
+            <!-- Matrix Diagram -->
+            <div class="matrix-grid reveal" style="flex:1;">
+                <!-- Header row -->
+                <div class="matrix-header"></div>
+                <div class="matrix-header" style="border-bottom:2px solid var(--yellow);">Weryfikacja Niska</div>
+                <div class="matrix-header" style="border-bottom:2px solid var(--yellow);">Weryfikacja Wysoka</div>
+
+                <!-- Row 1: Wysokie Zrozumienie -->
+                <div class="matrix-header" style="writing-mode:vertical-rl; transform:rotate(180deg); border-right:2px solid var(--yellow);">Wysokie zrozumienie</div>
+                <div class="matrix-cell" style="background:var(--gray-light); border:1px solid var(--gray-mid);">
+                    <h4 style="color:var(--gray-text);">COWBOY CODING</h4>
+                    <p>znajome, ale ryzykowne</p>
+                </div>
+                <div class="matrix-cell" style="background:var(--gray-light); border:1px solid var(--gray-mid);">
+                    <h4>TRADYCYJNY ENGINEERING</h4>
+                    <p>wolno, bezpiecznie</p>
+                </div>
+
+                <!-- Row 2: Niskie Zrozumienie -->
+                <div class="matrix-header" style="writing-mode:vertical-rl; transform:rotate(180deg); border-right:2px solid var(--yellow);">Niskie zrozumienie</div>
+                <div class="matrix-cell" style="background:var(--red-light); border:2px solid var(--red);">
+                    <h4 style="color:var(--red);">VIBECODING DISASTER</h4>
+                    <p>← tu ląduje większość</p>
+                </div>
+                <div class="matrix-cell" style="background:var(--green-light); border:2px solid var(--green);">
+                    <h4 style="color:#2e7d32;">VIBECODING DONE RIGHT</h4>
+                    <p>← cel</p>
+                </div>
+            </div>
+
+            <div class="reveal">
+                <p style="font-size:var(--small-size);"><strong>Kluczowy insight:</strong> VibeCoding nie <strong>obniża</strong> wymagań inżynierskich — <strong>przesuwa je</strong>.</p>
+            </div>
+
+            <div class="compare reveal">
+                <div class="col-box red">
+                    <p style="font-size:var(--label-size);"><strong>Mniej:</strong> rozumienie każdej linii kodu</p>
+                </div>
+                <div class="col-box green">
+                    <p style="font-size:var(--label-size);"><strong>Więcej:</strong> testy, feedback loops, modularity, systematyczna weryfikacja</p>
+                </div>
+            </div>
+
+            <p class="reveal" style="font-size:var(--small-size);">Dla równoważnego poziomu bezpieczeństwa potrzebujesz <em>więcej</em> dyscypliny, nie mniej.</p>
+
+            <blockquote class="reveal">
+                <strong>Pytanie do zadania sobie:</strong> "Czy moja weryfikacja jest wystarczająco silna żeby kompensować brak pełnego rozumienia kodu?"
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s34">
+    <div class="sidebar"><span class="sidebar-label">Zmiana roli dewelopera</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Z kucharza na head chefa</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal" style="font-size:var(--small-size);">Karpathy opisał swój workflow wprost:</p>
+
+            <div class="compare reveal">
+                <div class="col-box" style="border-top-color:var(--gray-text);">
+                    <blockquote style="border:none; background:none; padding:0.3em 0; font-size:var(--small-size);">
+                        <em>"I just see stuff, say stuff, run stuff, and copy paste stuff, and it mostly works."</em>
+                    </blockquote>
+                </div>
+                <div class="col-box" style="border-top-color:var(--gray-text);">
+                    <blockquote style="border:none; background:none; padding:0.3em 0; font-size:var(--small-size);">
+                        <em>"I ask for random changes until bugs go away."</em>
+                    </blockquote>
+                </div>
+            </div>
+
+            <p class="reveal" style="font-size:var(--small-size);">I to jest <strong>celowe</strong>.</p>
+
+            <!-- Flow comparison: Old vs New model -->
+            <table class="tbl reveal" style="flex:1;">
+                <thead>
+                    <tr>
+                        <th>STARY MODEL</th>
+                        <th></th>
+                        <th>NOWY MODEL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Deweloper typuje kod</td>
+                        <td style="color:var(--yellow-dark); font-weight:900; text-align:center;">→</td>
+                        <td><strong>Deweloper opisuje cel</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Rozumie każdą linię</td>
+                        <td style="color:var(--yellow-dark); font-weight:900; text-align:center;">→</td>
+                        <td><strong>Weryfikuje wyniki</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Implementuje</td>
+                        <td style="color:var(--yellow-dark); font-weight:900; text-align:center;">→</td>
+                        <td><strong>Orkiestruje</strong></td>
+                    </tr>
+                    <tr>
+                        <td>"Jak to napisać?"</td>
+                        <td style="color:var(--yellow-dark); font-weight:900; text-align:center;">→</td>
+                        <td><strong>"Co chcę zbudować?"</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Przyspiesza siebie</td>
+                        <td style="color:var(--yellow-dark); font-weight:900; text-align:center;">→</td>
+                        <td><strong>Przyspiesza agentów</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p class="reveal" style="font-size:var(--small-size);">Krytyczna umiejętność przesuwa się z <strong>code generation</strong> na <strong>artykułowanie celów i specyfikacji</strong>.</p>
+
+            <blockquote class="reveal">
+                <em>"You used to accelerate yourself. Now your role is to accelerate them."</em>
+            </blockquote>
+
+            <p class="reveal" style="font-size:var(--body-size);"><strong>VibeCoding zmienia zakres odpowiedzialności — nie eliminuje odpowiedzialności.</strong></p>
+
+            <blockquote class="reveal" style="background:var(--gray-light); border-left-color:var(--black);">
+                <strong>Pytanie do uczestników:</strong> <em>Kiedy ostatnio naprawdę CZYTAŁEŚ cały kod który wysyłałeś na produkcję?</em>
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s35">
+    <div class="sidebar"><span class="sidebar-label">FAAFO: wartość poza prędkością</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">FAAFO — wartość wykracza daleko poza prędkość</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal" style="font-size:var(--small-size);">Deweloperzy myślą "AI przyspiesza pisanie kodu". To prawda, ale <strong>płytka</strong>. Głębsza wartość:</p>
+
+            <div class="cards cols-5 reveal" style="flex:1;">
+                <div class="card">
+                    <h4><span class="badge badge-yellow">F</span> Fast</h4>
+                    <p>Oczywiste — ale najmniej interesujące z pięciu</p>
+                </div>
+                <div class="card">
+                    <h4><span class="badge badge-yellow">A</span> Ambitious</h4>
+                    <p>Projekty wcześniej niemożliwe dla jednej osoby</p>
+                    <p style="font-size:var(--label-size); margin-top:0.3em;"><strong>Pieter Levels:</strong> multiplayer game w 17 dni, $1M ARR</p>
+                </div>
+                <div class="card">
+                    <h4><span class="badge badge-yellow">A</span> Autonomous</h4>
+                    <p>Eliminacja "mind-reading tax"; jeden dev = cały zespół</p>
+                    <p style="font-size:var(--label-size); margin-top:0.3em;"><strong>Adidas:</strong> 700 dev, 50% wzrost "Happy Time"</p>
+                </div>
+                <div class="card">
+                    <h4><span class="badge badge-yellow">F</span> Fun</h4>
+                    <p>Efekt slot machine, powrót przyjemności z tworzenia</p>
+                </div>
+                <div class="card">
+                    <h4><span class="badge badge-yellow">O</span> Optionality</h4>
+                    <p>Eksploracja równoległych rozwiązań zamiast zakładu na pierwszą hipotezę</p>
+                </div>
+            </div>
+
+            <div class="card featured reveal">
+                <h4>Case study: ETH2030</h4>
+                <p><strong>Problem:</strong> 65 planowanych upgrades Ethereum rozsianych po dziesiątkach EIPów, wiele w draft. Nikt nie sprawdził czy architektonicznie do siebie pasują. Ryzyko: client teams mogłyby odkryć w 2030, po latach produkcyjnego inżynierowania, że fundamentalne założenia nie trzymają się kupy.</p>
+                <p><strong>Rozwiązanie:</strong> Claude Code Opus 4.6 · 6 dni · $5,750 · 2,77 mld tokenów → 702k linii Go · 36 126 testów zdanych · sync z mainnetem</p>
+            </div>
+
+            <blockquote class="reveal">
+                <em>"All 65 items fit into a single codebase. The types align. The interfaces connect. That is more than most five-year technology roadmaps achieve before anyone writes a line of code."</em> — ETH2030 team
+            </blockquote>
+
+            <p class="reveal" style="font-size:var(--small-size);">Vitalik Buterin w odpowiedzi: blog software napisany w <strong>1 GODZINĘ</strong> na własnym laptopie (gpt-oss:20b). <em>"What matters is where the trend is going."</em></p>
+
+            <p class="reveal" style="font-size:var(--body-size);"><strong>Pytaj nie "o ile szybciej?" — pytaj "co teraz jest możliwe, co wcześniej nie było?"</strong></p>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s36">
+    <div class="sidebar"><span class="sidebar-label">Ciemna strona</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Ciemna strona VibeCodingu</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal" style="font-size:var(--small-size);">Bezkrytyczny entuzjazm jest niebezpieczny. Deweloperzy muszą znać granice.</p>
+
+            <h3 class="reveal">Pułapki techniczne</h3>
+            <div class="cards cols-2 reveal" style="flex:1;">
+                <div class="card danger">
+                    <h4>Cardboard muffin problem</h4>
+                    <p>AI nie skipuje wymagań. Tworzy <strong>fasadę ich spełnienia</strong>. Kod kompiluje się, testy przechodzą — funkcja nie istnieje.</p>
+                </div>
+                <div class="card danger">
+                    <h4>Baby-counting</h4>
+                    <p>Ciche pomijanie wymagań bez informowania</p>
+                </div>
+                <div class="card danger">
+                    <h4>Security</h4>
+                    <p><strong>45%</strong> AI-generated code zawiera podatności (Veracode, score 7/10). Lovable: 170 z 1 645 aplikacji eksponowało dane osobowe użytkowników (score 7/10)</p>
+                </div>
+                <div class="card danger">
+                    <h4>Dług techniczny w hiperprzyspieszeniu</h4>
+                    <p><em>"You can accumulate tomorrow's debt literally this afternoon"</em></p>
+                </div>
+            </div>
+
+            <h3 class="reveal">Paradoks weryfikacji (ETH2030)</h3>
+            <blockquote class="reveal">
+                <em>"The gap between 'ValidateAttestation() returns nil' and 'survives a reorg attack during peak MEV' is measured in years of engineering."</em>
+            </blockquote>
+            <p class="reveal" style="font-size:var(--label-size);">Pure-Go BLS crypto jest 10–100x wolniejszy niż produkcyjny C/Rust. Walidator przegapiałby attestation deadlines o rząd wielkości. <strong>Architecturally correct, operationally broken.</strong></p>
+
+            <h3 class="reveal">Paradoks kwalifikacji</h3>
+            <div class="compare reveal">
+                <div class="col-box red">
+                    <p style="font-size:var(--label-size);"><strong>METR study:</strong> doświadczeni deweloperzy byli <strong style="color:var(--red);">19% WOLNIEJSI</strong> z AI niż bez (przy własnej prognozie: +24%).</p>
+                </div>
+                <div class="col-box" style="border-top-color:var(--yellow-dark);">
+                    <p style="font-size:var(--label-size);">AI działa najlepiej dla ekspertów, najgorzej dla nowicjuszy — <strong>odwrotnie niż większość zakłada</strong>. Nowicjusz nie rozpozna niebezpiecznego kodu wygenerowanego przez AI.</p>
+                </div>
+            </div>
+
+            <blockquote class="reveal">
+                <strong>"Going fast without feedback is dangerous."</strong>
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s37">
+    <div class="sidebar"><span class="sidebar-label">Kiedy tak, kiedy nie</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Świadomy wybór narzędzia</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <div class="compare reveal" style="flex:1;">
+                <div class="col-box green" style="display:flex; flex-direction:column; gap:0.5em;">
+                    <h3 style="font-size:var(--small-size); color:#2e7d32;">VibeCoding <strong>ma sens</strong> gdy</h3>
+                    <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:0.3em;">
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0; border-bottom:1px solid var(--gray-mid);">Prototyp / proof-of-concept / MVP</li>
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0; border-bottom:1px solid var(--gray-mid);">Eksploracja — "czy to w ogóle jest możliwe?"</li>
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0; border-bottom:1px solid var(--gray-mid);">Narzędzia wewnętrzne, side projekty, skrypty</li>
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0; border-bottom:1px solid var(--gray-mid);">Domenowa wiedza pozwala zweryfikować output</li>
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0;">Koszt błędu jest niski</li>
+                    </ul>
+                </div>
+                <div class="col-box red" style="display:flex; flex-direction:column; gap:0.5em;">
+                    <h3 style="font-size:var(--small-size); color:var(--red);">VibeCoding <strong>jest ryzykowny</strong> gdy</h3>
+                    <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:0.3em;">
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0; border-bottom:1px solid var(--gray-mid);">System produkcyjny z danymi użytkowników</li>
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0; border-bottom:1px solid var(--gray-mid);">Wymagania security/compliance (finanse, medycyna)</li>
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0; border-bottom:1px solid var(--gray-mid);">Codebase do wieloletniego maintenance</li>
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0; border-bottom:1px solid var(--gray-mid);">Brak testów i feedback loops</li>
+                        <li style="font-size:var(--label-size); color:var(--gray-text); padding:0.25em 0;">Architektura, którą ktoś będzie debugować za rok</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 class="reveal">Zasady inżynierskie, które stają się WAŻNIEJSZE przy VibeCoding, nie mniej:</h3>
+            <div class="cards cols-2 reveal">
+                <div class="card">
+                    <h4>Fast feedback loops</h4>
+                    <p>(testy, CI/CD) — bez nich prędkość = niewidzialne ryzyko</p>
+                </div>
+                <div class="card">
+                    <h4>Modularity</h4>
+                    <p>ogranicza blast radius i umożliwia równoległą pracę agentów</p>
+                </div>
+                <div class="card">
+                    <h4>Systematyczna weryfikacja</h4>
+                    <p>nie "uruchomił się = działa"</p>
+                </div>
+                <div class="card">
+                    <h4>Tracer bullet approach</h4>
+                    <p>zamiast big bang, iteracyjne potwierdzanie że kierunek jest dobry</p>
+                </div>
+            </div>
+
+            <blockquote class="reveal">
+                <em>"A reference implementation generates not production-quality code, but production-quality questions."</em> — ETH2030 team
+            </blockquote>
+
+            <p class="reveal" style="font-size:var(--label-size);">Vitalik Buterin o strategii: <em>"Take half the gains from AI in speed, and half the gains in security: generate more test-cases, formally verify everything, make more multi-implementations."</em></p>
+
+            <p class="reveal" style="font-size:var(--body-size);"><strong>VibeCoding jest narzędziem, nie religią. Świadomy wybór kiedy "give in to the vibes" — to właśnie jest nowa umiejętność eksperta.</strong></p>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s38">
+    <div class="sidebar"><span class="sidebar-label">Hands-on: Twoje projekty w Verification Matrix</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Hands-on — gdzie jesteś w macierzy?</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <!-- Matrix Diagram -->
+            <div class="matrix-grid reveal" style="flex:1;">
+                <div class="matrix-header"></div>
+                <div class="matrix-header" style="border-bottom:2px solid var(--yellow);">Weryfikacja Niska</div>
+                <div class="matrix-header" style="border-bottom:2px solid var(--yellow);">Weryfikacja Wysoka</div>
+
+                <div class="matrix-header" style="writing-mode:vertical-rl; transform:rotate(180deg); border-right:2px solid var(--yellow);">Wysokie zrozumienie</div>
+                <div class="matrix-cell" style="background:var(--gray-light); border:1px solid var(--gray-mid);">
+                    <h4 style="color:var(--gray-text);">COWBOY CODING</h4>
+                </div>
+                <div class="matrix-cell" style="background:var(--gray-light); border:1px solid var(--gray-mid);">
+                    <h4>TRADYCYJNY ENGINEERING</h4>
+                </div>
+
+                <div class="matrix-header" style="writing-mode:vertical-rl; transform:rotate(180deg); border-right:2px solid var(--yellow);">Niskie zrozumienie</div>
+                <div class="matrix-cell" style="background:var(--red-light); border:2px solid var(--red);">
+                    <h4 style="color:var(--red);">VIBECODING DISASTER</h4>
+                </div>
+                <div class="matrix-cell" style="background:var(--green-light); border:2px solid var(--green);">
+                    <h4 style="color:#2e7d32;">VIBECODING DONE RIGHT</h4>
+                </div>
+            </div>
+
+            <div class="hands-on reveal">
+                <div class="ho-label">Hands-on — Ćwiczenie (5 minut)</div>
+                <p>Pomyśl o <strong>trzech projektach lub zadaniach</strong> z ostatnich miesięcy:</p>
+                <ol>
+                    <li>Gdzie w tej macierzy był każdy z nich?</li>
+                    <li>Który mógłby / powinien być w kwadrancie <strong>VibeCoding Done Right</strong>?</li>
+                    <li>Co musiałoby się zmienić w Twoim workflow żeby tam trafić?</li>
+                </ol>
+            </div>
+
+            <div class="hands-on reveal" style="background:var(--gray-light); border-color:var(--gray-mid); border-left-color:var(--black);">
+                <div class="ho-label" style="color:var(--black);">Dyskusja grupowa</div>
+                <ul style="list-style:disc; padding-left:1.2em;">
+                    <li><em>Który z projektów w waszej firmie mógłby dziś być vibe-coded?</em></li>
+                    <li><em>Co jest największą barierą przed wejściem w prawy dolny kwadrant?</em></li>
+                </ul>
+            </div>
+
+            <blockquote class="reveal">
+                <strong>Kluczowe pytanie do zabrania do domu:</strong> <em>"Czy to co robię to VibeCoding czy AI-assisted engineering — i czy to świadomy wybór?"</em>
+            </blockquote>
+        </div>
+    </div>
+</section>
+
+<section class="slide title-slide" id="s39">
+    <div class="sidebar"><span class="sidebar-label">Boldare</span></div>
+    <div class="main">
+        <div class="title-deco"></div>
+        <div class="accent-bar" style="width:clamp(50px,7vw,100px); margin-bottom:clamp(0.6rem,1.5vh,1.2rem);"></div>
+        <h1 class="title-main reveal-left">Claude Code<br>w projekcie brownfield</h1>
+        <p class="title-sub reveal">Jak nauczyć AI domeny biznesowej</p>
+        <div class="title-pres reveal">
+            <span class="pres-lbl">Prowadzący</span>
+            <span class="pres-names">Jakub Walczak · Karol Kasprzak · Przemysław Świda · Sylwia Rapacz</span>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s40">
+    <div class="sidebar"><span class="sidebar-label">Problem</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Problem</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <div class="cards cols-2 reveal" style="flex:1;">
+                <div class="card featured" style="flex:1;">
+                    <h4>Duży, istniejący projekt</h4>
+                    <p>Wchodzisz do <strong>dużego, istniejącego projektu</strong> (brownfield)</p>
+                </div>
+                <div class="card danger" style="flex:1;">
+                    <h4>AI nie zna domeny</h4>
+                    <p>Claude Code <strong>nie zna domeny biznesowej</strong> — widzi tylko kod</p>
+                </div>
+                <div class="card danger" style="flex:1;">
+                    <h4>Generyczne rozwiązania</h4>
+                    <p>Bez kontekstu generuje <strong>generyczne, niedopasowane rozwiązania</strong></p>
+                </div>
+                <div class="card success" style="flex:1;">
+                    <h4>Systematyczny onboarding</h4>
+                    <p>Potrzebujemy systematycznego procesu <strong>onboardingu AI</strong> do projektu</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s41">
+    <div class="sidebar"><span class="sidebar-label">Rozwiązanie</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Rozwiązanie: 4-krokowy proces</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <div class="flow reveal" style="margin:clamp(0.5rem,2vh,1.5rem) 0;">
+                <div class="flow-box hi">1. MAPA<br>MODUŁÓW</div>
+                <span class="flow-arrow">&#9658;</span>
+                <div class="flow-box hi">2. ANALIZA<br>SZCZEGÓŁOWA</div>
+                <span class="flow-arrow">&#9658;</span>
+                <div class="flow-box hi">3. SKILL<br>(AUTOMAT)</div>
+                <span class="flow-arrow">&#9658;</span>
+                <div class="flow-box dark">4. IMPLEMENT<br>USE CASE</div>
+            </div>
+            <div class="cards cols-4 reveal" style="flex:1;">
+                <div class="card">
+                    <h4>Krok 1</h4>
+                    <p>Prompt jednorazowy</p>
+                    <p style="margin-top:auto;"><strong>Mapa modułów</strong></p>
+                </div>
+                <div class="card">
+                    <h4>Krok 2</h4>
+                    <p>Prompt per moduł</p>
+                    <p style="margin-top:auto;"><strong>Analiza szczegółowa</strong></p>
+                </div>
+                <div class="card">
+                    <h4>Krok 3</h4>
+                    <p>Konfiguracja jednorazowa</p>
+                    <p style="margin-top:auto;"><strong>Skill (automat)</strong></p>
+                </div>
+                <div class="card featured">
+                    <h4>Krok 4</h4>
+                    <p>Praca z AI codzienna</p>
+                    <p style="margin-top:auto;"><strong>Implementacja</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s42">
+    <div class="sidebar"><span class="sidebar-label">Mapa modułów</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Krok 1: Mapa modułów biznesowych</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal"><strong>Cel:</strong> Stworzyć <code>modules.md</code> — indeks nawigacyjny całego systemu</p>
+
+            <div class="sec-label reveal">Co robi prompt</div>
+            <div class="steps reveal">
+                <div class="step">
+                    <div class="step-n">1</div>
+                    <div class="step-t">Parsuje <code>README.md</code> i strukturę pakietów Java</div>
+                </div>
+                <div class="step">
+                    <div class="step-n">2</div>
+                    <div class="step-t">Identyfikuje moduły biznesowe</div>
+                </div>
+                <div class="step">
+                    <div class="step-n">3</div>
+                    <div class="step-t">Mapuje pakiety Java do modułów</div>
+                </div>
+                <div class="step">
+                    <div class="step-n">4</div>
+                    <div class="step-t">Znajduje istniejącą dokumentację <code>.md</code></div>
+                </div>
+                <div class="step">
+                    <div class="step-n">5</div>
+                    <div class="step-t">Generuje diagram zależności (Mermaid)</div>
+                </div>
+            </div>
+
+            <div class="sec-label reveal">Rezultat</div>
+            <table class="tbl reveal" style="flex-shrink:0;">
+                <thead>
+                    <tr><th>Moduł</th><th>Opis</th><th>Pakiet Java</th><th>Dokumentacja</th></tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight"><td><strong>Orders</strong></td><td>Zarządzanie zamówieniami</td><td><code>com.app.orders</code></td><td><code>docs/orders.md</code></td></tr>
+                    <tr><td><strong>Billing</strong></td><td>Fakturowanie</td><td><code>com.app.billing</code></td><td style="color:var(--red);">Not found</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s43">
+    <div class="sidebar"><span class="sidebar-label">Analiza modułu</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Krok 2: Głęboka analiza modułu</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal"><strong>Cel:</strong> Dla każdego modułu stworzyć <code>[moduł]-analysis.md</code></p>
+
+            <div class="cards cols-3 reveal" style="flex:1;">
+                <div class="card">
+                    <h4>Use Case'y</h4>
+                    <p>Kto je triggeruje? (user, event, scheduler)</p>
+                </div>
+                <div class="card">
+                    <h4>Obiekty domenowe</h4>
+                    <p>Cykl życia, stany, przejścia</p>
+                </div>
+                <div class="card">
+                    <h4>Walidacje</h4>
+                    <p>Reguły biznesowe, constrainty</p>
+                </div>
+                <div class="card">
+                    <h4>Integracje</h4>
+                    <p>REST, kolejki, eventy</p>
+                </div>
+                <div class="card">
+                    <h4>Testy</h4>
+                    <p>Scenariusze z testów integracyjnych</p>
+                </div>
+                <div class="card featured">
+                    <h4>Diagramy</h4>
+                    <p>stateDiagram + sequenceDiagram</p>
+                </div>
+            </div>
+
+            <div class="sec-label reveal">Kluczowe diagramy</div>
+            <div class="compare reveal">
+                <div class="col-box">
+                    <h4 style="color:var(--black);">stateDiagram-v2</h4>
+                    <div class="state-diagram" style="margin-top:0.4em;">
+                        <div class="state-box">Draft</div>
+                        <div class="state-arrow">&#8595;</div>
+                        <div class="state-box active">Active</div>
+                        <div style="display:flex;gap:0.5em;">
+                            <div style="text-align:center;"><div class="state-arrow">&#8595;</div><div class="state-box">Closed</div></div>
+                            <div style="text-align:center;"><div class="state-arrow">&#8595;</div><div class="state-box" style="border-color:var(--red);">Cancelled</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-box hi">
+                    <h4 style="color:var(--black);">sequenceDiagram</h4>
+                    <div class="steps" style="margin-top:0.4em;">
+                        <div class="step"><div class="step-n" style="font-size:var(--label-size);">1</div><div class="step-t">User &#8594; API: Create Order</div></div>
+                        <div class="step"><div class="step-n" style="font-size:var(--label-size);">2</div><div class="step-t">API &#8594; Handler: Command</div></div>
+                        <div class="step"><div class="step-n" style="font-size:var(--label-size);">3</div><div class="step-t">Handler &#8594; Aggregate: Apply</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s44">
+    <div class="sidebar"><span class="sidebar-label">Skill</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Krok 3: Skill — automatyczna aktywacja</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal"><strong>Cel:</strong> Stworzyć <strong>Claude Code Skill</strong>, który aktywuje się automatycznie</p>
+
+            <div class="sec-label reveal">Jak działa</div>
+            <div class="steps reveal">
+                <div class="step">
+                    <div class="step-n">1</div>
+                    <div class="step-t">Definiujesz trigger: <em>„gdy zmieniamy obiekt domenowy X"</em></div>
+                </div>
+                <div class="step">
+                    <div class="step-n">2</div>
+                    <div class="step-t">Skill automatycznie ładuje analizę modułu do kontekstu</div>
+                </div>
+                <div class="step">
+                    <div class="step-n">3</div>
+                    <div class="step-t">Claude Code <strong>wie</strong> jakie są zależności, eventy, walidacje</div>
+                </div>
+                <div class="step">
+                    <div class="step-n">4</div>
+                    <div class="step-t">Nie musisz za każdym razem tłumaczyć domeny</div>
+                </div>
+            </div>
+
+            <div class="sec-label reveal">Konfiguracja w <code>.claude/skills/</code></div>
+            <div class="diagram-box reveal" style="flex:1;">
+# Deep Module Analysis
+- Trigger: zmiany w obiekcie domenowym modułu
+- Kontekst: ładuje [moduł]-analysis.md
+- Sprawdza: zależności, eventy, lifecycle</div>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s45">
+    <div class="sidebar"><span class="sidebar-label">Implementacja</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Krok 4: Implementacja use case'a</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <p class="reveal"><strong>Cel:</strong> Implementować nowy feature <strong>z pełnym kontekstem biznesowym</strong></p>
+
+            <div class="sec-label reveal">Co się dzieje</div>
+            <div class="steps reveal">
+                <div class="step">
+                    <div class="step-n">1</div>
+                    <div class="step-t">Prosisz Claude Code o zmianę w module X</div>
+                </div>
+                <div class="step">
+                    <div class="step-n">2</div>
+                    <div class="step-t">Skill automatycznie się aktywuje</div>
+                </div>
+                <div class="step">
+                    <div class="step-n">3</div>
+                    <div class="step-t">AI zna: obiekty domenowe, stany, walidacje, eventy</div>
+                </div>
+                <div class="step">
+                    <div class="step-n">4</div>
+                    <div class="step-t">Generuje kod <strong>spójny z istniejącą architekturą</strong></div>
+                </div>
+                <div class="step">
+                    <div class="step-n">5</div>
+                    <div class="step-t">Wie jakie testy napisać i jakich builderów użyć</div>
+                </div>
+            </div>
+
+            <div class="sec-label reveal">Efekt</div>
+            <div class="cards cols-2 reveal" style="flex:1;">
+                <div class="card success">
+                    <h4 style="color:#2e7d32;">Dopasowany kod</h4>
+                    <p>Kod jest <strong>dopasowany do konwencji projektu</strong></p>
+                </div>
+                <div class="card success">
+                    <h4 style="color:#2e7d32;">Walidacje biznesowe</h4>
+                    <p>Walidacje biznesowe <strong>nie są pominięte</strong></p>
+                </div>
+                <div class="card success">
+                    <h4 style="color:#2e7d32;">Eventy i side-effecty</h4>
+                    <p>Eventy i side-effecty <strong>są uwzględnione</strong></p>
+                </div>
+                <div class="card success">
+                    <h4 style="color:#2e7d32;">Realne testy</h4>
+                    <p>Testy pokrywają <strong>realne scenariusze biznesowe</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s46">
+    <div class="sidebar"><span class="sidebar-label">Ograniczenia</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Dlaczego to nie wystarczy?</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <div class="cards cols-3 reveal" style="flex:1;">
+                <div class="card danger">
+                    <h4 style="color:var(--red);">Statyczna dokumentacja ma datę ważności</h4>
+                    <ul>
+                        <li><code>modules.md</code> i <code>[moduł]-analysis.md</code> to <strong>snapshot</strong> — kod idzie dalej, dokumentacja zostaje</li>
+                        <li>Nowy event handler dodany tydzień temu? <strong>Nie ma go w analizie</strong></li>
+                        <li>Nikt nie robi code review pliku <code>analysis.md</code> — błędy są <strong>ciche</strong></li>
+                    </ul>
+                </div>
+                <div class="card danger">
+                    <h4 style="color:var(--red);">AI ufa analizie za bardzo</h4>
+                    <ul>
+                        <li>Przeczyta plik → uzna że to <strong>komplet zależności</strong> → przestanie szukać</li>
+                        <li>Częściowa mapa jest <strong>gorsza niż brak mapy</strong> — bo brak mapy wymusza eksplorację</li>
+                        <li>Paradoks: im lepsza analiza, tym bardziej AI się na niej opiera</li>
+                    </ul>
+                </div>
+                <div class="card danger">
+                    <h4 style="color:var(--red);">Koszt rośnie, wartość maleje</h4>
+                    <ul>
+                        <li>20 min/moduł × 30 modułów = <strong>10+ godzin</strong> jednorazowej pracy</li>
+                        <li>Po 2 sprintach połowa analizy jest nieaktualna</li>
+                        <li>Kto zaktualizuje? <strong>Nikt</strong> — bo to nie jest kod, który się testuje</li>
+                    </ul>
+                </div>
+            </div>
+
+            <blockquote class="reveal">Dokumentacja to fotografia. Potrzebujemy kamery na żywo.</blockquote>
+        </div>
+    </div>
+</section>
+
+<section class="slide" id="s47">
+    <div class="sidebar"><span class="sidebar-label">Przyszłość</span></div>
+    <div class="main">
+        <div class="slide-header">
+            <h1 class="slide-title reveal-left">Nadzieja na lepsze jutro</h1>
+            <div class="accent-bar"></div>
+        </div>
+        <div class="slide-body stagger">
+            <div class="sec-label reveal">Od promptów do skilli</div>
+
+            <div class="compare reveal">
+                <div class="col-box red">
+                    <h4 style="color:var(--red);">DZIŚ</h4>
+                    <ul>
+                        <li>Prompt: „przeanalizuj moduł"</li>
+                        <li>Prompt: „znajdź zależności"</li>
+                        <li>Prompt: „sprawdź eventy"</li>
+                        <li>Ręczna dokumentacja</li>
+                    </ul>
+                </div>
+                <div class="col-box green">
+                    <h4 style="color:#2e7d32;">JUTRO</h4>
+                    <ul>
+                        <li>Skill: sam wie jak analizować</li>
+                        <li>Skill: zna wzorce frameworka</li>
+                        <li>Skill: śledzi łańcuchy eventów</li>
+                        <li>Dynamiczna analiza z kodu</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p class="reveal"><strong>Zamiast pisać prompty</strong> które mówią AI <em>co znaleźć</em> — tworzymy <strong>skille</strong> które wiedzą <em>jak szukać</em>.</p>
+
+            <div class="cards cols-2 reveal" style="flex:1;">
+                <div class="card">
+                    <h4>Skill zna wzorce frameworka</h4>
+                    <p><code>@EventListener</code>, <code>AggregateIdentifier</code>, Factus</p>
+                </div>
+                <div class="card">
+                    <h4>Skill wie gdzie szukać</h4>
+                    <p>Zależności compile-time i runtime</p>
+                </div>
+                <div class="card">
+                    <h4>Skill buduje graf z kodu</h4>
+                    <p>Graf zależności <strong>z aktualnego kodu</strong> — nie ze starego pliku</p>
+                </div>
+                <div class="card featured">
+                    <h4>Skill uczy się z feedbacku</h4>
+                    <p>Po każdej implementacji rośnie</p>
+                </div>
+            </div>
+
+            <blockquote class="reveal">Nie uczymy AI naszej domeny. Uczymy AI <strong>jak samodzielnie odkrywać</strong> naszą domenę.</blockquote>
+        </div>
+    </div>
+</section>
+
+</div>
+
+<!-- NAVIGATION UI -->
+<div id="nav-ui">
+  <div id="progress-bar"><div id="progress"></div></div>
+  <div id="nav-bar">
+    <span id="counter">01 / 47</span>
+    <div id="nav-dots"></div>
+    <span style="font-family:'Barlow';font-weight:700;font-size:0.75rem;color:rgba(255,255,255,0.35);letter-spacing:0.1em;">CLAUDE CODE WORKSHOP</span>
+  </div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  const dotsContainer = document.getElementById('nav-dots');
+  let current = 0;
+  let scrollCooldown = false;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  });
+
+  function updateUI(idx) {
+    current = idx;
+    const n = String(idx + 1).padStart(2, '0');
+    const t = String(total).padStart(2, '0');
+    counter.textContent = n + ' / ' + t;
+    progress.style.width = ((idx + 1) / total * 100) + '%';
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+
+  function goTo(idx) {
+    idx = Math.max(0, Math.min(total - 1, idx));
+    slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    updateUI(idx);
+  }
+
+  // Intersection observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        const idx = slides.indexOf(entry.target);
+        if (idx !== -1) updateUI(idx);
+      }
+    });
+  }, { threshold: 0.5 });
+  slides.forEach(s => observer.observe(s));
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (['ArrowDown','ArrowRight','Space','PageDown'].includes(e.code)) { e.preventDefault(); goTo(current + 1); }
+    if (['ArrowUp','ArrowLeft','PageUp'].includes(e.code)) { e.preventDefault(); goTo(current - 1); }
+    if (e.code === 'Home') { e.preventDefault(); goTo(0); }
+    if (e.code === 'End') { e.preventDefault(); goTo(total - 1); }
+  });
+
+  // Scroll wheel
+  document.querySelector('.presentation').addEventListener('wheel', e => {
+    if (scrollCooldown) return;
+    scrollCooldown = true;
+    setTimeout(() => scrollCooldown = false, 700);
+    if (e.deltaY > 0) goTo(current + 1);
+    else goTo(current - 1);
+  }, { passive: true });
+
+  // Touch
+  let touchStartY = 0;
+  document.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const delta = touchStartY - e.changedTouches[0].clientY;
+    if (Math.abs(delta) > 50) goTo(delta > 0 ? current + 1 : current - 1);
+  });
+
+  // Init
+  updateUI(0);
+</script>
+</body>
+</html>
